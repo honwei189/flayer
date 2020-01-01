@@ -1,0 +1,32 @@
+{
+    "name": "honwei189/flayer",
+    "description": "Layer library for PHP (not suitable for Laravel).  This is to implement deeper services like container and injection, class services and also provides some utility functions",
+    "authors": [
+        {
+            "name": "Gordon Lim",
+            "email": "honwei189@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "honwei189\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "honwei189\\flayerServiceProvider"
+            ]
+        },
+        "installer-paths": {
+            "./vendor/{$vendor}/honwei189/libs/{$name}": [
+                "honwei189/flayer"
+            ]
+        }
+    }
+}
