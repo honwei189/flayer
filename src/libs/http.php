@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 06/05/2019 18:53:39
- * @last modified     : 23/12/2019 21:53:37
+ * @last modified     : 22/03/2020 21:59:59
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -21,15 +21,17 @@ use \honwei189\config as config;
  * @link        https://github.com/honwei189/html/
  * @link        https://appsw.dev
  * @link        https://justtest.app
- * @version     "1.0.0" 
- * @since       "1.0.0" 
+ * @version     "1.0.0"
+ * @since       "1.0.0"
  */
 class http
 {
+    public $action;
     public $error;
     public $header;
     public $is_jwt_auth         = false;
     public $is_jwt_auth_success = false;
+    public $type                = "html";
     public $_files              = [];
     public $_get                = [];
     public $_json               = [];
@@ -45,7 +47,7 @@ class http
      */
     public function __construct()
     {
-        $this->header = "get";
+        $this->action = "get";
         $this->_get   = $_GET;
         $this->_get   = preg_replace("'<script[^>]*?" . "" . ">.*?</script>'si", "", $this->_get);
         $this->_get   = filter_var_array($this->_get, FILTER_SANITIZE_STRING);
@@ -66,14 +68,14 @@ class http
         );
 
         if (count($this->_post) > 0) {
-            $this->header = "post";
+            $this->action = "post";
         }
 
         $this->_raws = file_get_contents("php://input");
 
         if (strlen($this->_raws) > 0 && $this->isValidJSON($this->_raws)) {
-            $this->header = "json";
-            $this->_json  = $this->sanitize_object(json_decode($this->_raws));
+            $this->type  = "json";
+            $this->_json = $this->sanitize_object(json_decode($this->_raws));
 
             if (!is_array($this->_json)) {
                 $this->_json = [$this->_json];
@@ -81,8 +83,8 @@ class http
 
             $this->_post = array_merge($this->_post, $this->_json);
         } else {
-            $this->header = trim(strtolower($_SERVER['REQUEST_METHOD']));
-            if ($this->header == "put") {
+            $this->action = trim(strtolower($_SERVER['REQUEST_METHOD']));
+            if ($this->action == "put") {
                 $chunk = 8192;
 
                 if (!is_null($this->_raws) && is_array($this->_raws)) {
@@ -193,22 +195,22 @@ class http
             }
 
             if (isset($this->_post['header'])) {
-                $this->header = $this->_post['header'];
+                $this->action = $this->_post['header'];
                 unset($this->_post['header']);
             } else if (isset($this->_post['_header'])) {
-                $this->header = $this->_post['_header'];
+                $this->action = $this->_post['_header'];
                 unset($this->_post['_header']);
             } else if (isset($this->_post['method'])) {
-                $this->header = $this->_post['method'];
+                $this->action = $this->_post['method'];
                 unset($this->_post['method']);
             } else if (isset($this->_post['_method'])) {
-                $this->header = $this->_post['_method'];
+                $this->action = $this->_post['_method'];
                 unset($this->_post['_method']);
             }
 
-            $this->header = trim(strtolower($this->header));
+            $this->action = trim(strtolower($this->action));
 
-            if ($this->header != "post" && $this->header != "get") {
+            if ($this->action != "post" && $this->action != "get") {
                 if (is_value($_SERVER['REQUEST_URI'])) {
                     $_ = explode("&", substr($_SERVER['REQUEST_URI'], 1));
 
@@ -246,7 +248,7 @@ class http
             array("options" => array($this, "sanitize_min_clean_array"))
         );
 
-        if ($this->header != "put") {
+        if ($this->action != "put") {
             $this->_files = $_FILES;
         }
 
@@ -270,11 +272,27 @@ class http
             }
         }
 
-        if ($this->header == "json") {
-            $headers           = $this->get_headers();
+        $this->header = $this->get_headers();
+
+        if(isset($this->header['Authorization'])){
+            if (isset($_SERVER['PHP_AUTH_USER'])) {
+                $this->header['user'] = $_SERVER['PHP_AUTH_USER'];
+            }
+
+            if (isset($_SERVER['PHP_AUTH_PW'])) {
+                $this->header['password'] = $_SERVER['PHP_AUTH_PW'];
+            }
+        }
+
+        if ($this->type == "json" && isset($this->header['Content-Type']) && trim(strtolower($this->header['Content-Type'])) == "application/json") {
             $this->is_jwt_auth = (isset(config::get("flayer", "jwt")['enabled']) ? (bool) config::get("flayer", "jwt")['enabled'] : "false");
 
-            foreach ($headers as $header => $value) {
+            if (is_array($this->_post) && count($this->_post)) {
+                $this->action = "post";
+                $this->_post  = [];
+            }
+
+            foreach ($this->header as $header => $value) {
                 if (strtolower($header) == "authorization") {
                     // if (stripos($value, "Bearer") !== false) {
 
@@ -398,15 +416,15 @@ class http
 
     private function get_headers()
     {
-        $headers = array();
+        $this->header = array();
         foreach ($_SERVER as $key => $value) {
             if (substr($key, 0, 5) != 'HTTP_') {
                 continue;
             }
-            $header           = trim(str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5))))));
-            $headers[$header] = $value;
+            $header                = trim(str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5))))));
+            $this->header[$header] = $value;
         }
-        return $headers;
+        return $this->header;
     }
 
     private function isValidJSON($requests)
