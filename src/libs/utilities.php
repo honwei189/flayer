@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 22/03/2020 14:43:31
+ * @last modified     : 22/03/2020 21:19:38
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -408,6 +408,26 @@ if (!function_exists("rtn")) {
         } else {
             return [(int) $bool, $dscpt];
         }
+    }
+}
+
+/**
+ * Write Array or Object into string
+ * 
+ * @param mixed $array
+ * @return string
+ */
+if (!function_exists("tostring")) {
+    function tostring($array)
+    {
+        ob_start();
+            print_r($array);
+            $contents = ob_get_contents();
+        ob_end_clean();
+        
+        $contents = str_replace("Array\n(", "", $contents);
+        $contents = substr($contents, 0, -2);
+        return $contents;
     }
 }
 
