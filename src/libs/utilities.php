@@ -1,15 +1,18 @@
 <?php
 /*
  * @description       : Utilities function
- * @version           : "1.0.0" 
+ * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 23/12/2019 21:55:55
+ * @last modified     : 22/03/2020 14:43:31
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
-namespace honwei189;
- 
+// namespace honwei189;
+
+use \honwei189\flayer as flayer;
+use \honwei189\crypto as crypto;
+
 if (!function_exists("auto_date")) {
     function auto_date($date, $format = "")
     {
