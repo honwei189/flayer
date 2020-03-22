@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 06/05/2019 18:53:39
- * @last modified     : 22/03/2020 21:59:59
+ * @last modified     : 22/03/2020 22:09:51
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -366,6 +366,44 @@ class http
     public function get()
     {
         return $this->_get;
+    }
+
+    /**
+     * Return HTTP error
+     * 
+     * @param integer $code 
+     * @param string $additional_info  
+     */
+    public function http_error($code, $additional_info = null)
+    {
+        // $protocol = strchr($_SERVER['SERVER_PROTOCOL'], '.', true);
+        // header("HTTP/1.0 403 Forbidden");
+
+        switch($code){
+            case "401":
+                $dscpt = "401 Unauthorized";
+            break;
+
+            case "403":
+                $dscpt = "403 Forbidden";
+            break;
+
+            case "404":
+                $dscpt = "404 Not Found";
+            break;
+
+            case "405":
+                $dscpt = "405 Method Not Allowed";
+            break;
+
+            case "406":
+                $dscpt = "406 Not Acceptable";
+            break;
+        }
+
+        $protocol = $_SERVER['SERVER_PROTOCOL'];
+        header($protocol . ' '. $dscpt .( is_value($additional_info) ? ".  {$additional_info}" : "" ));
+        exit;
     }
 
     /**
