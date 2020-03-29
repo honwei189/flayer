@@ -4,14 +4,14 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 22/03/2020 21:19:38
+ * @last modified     : 27/03/2020 14:37:29
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
 // namespace honwei189;
 
-use \honwei189\flayer as flayer;
 use \honwei189\crypto as crypto;
+use \honwei189\flayer as flayer;
 
 if (!function_exists("auto_date")) {
     function auto_date($date, $format = "")
@@ -193,7 +193,8 @@ if (!function_exists("data_description")) {
 }
 
 if (!function_exists("error")) {
-    function error($title, $contents){
+    function error($title, $contents)
+    {
         throw die("<pre><strong style=\"color: red;\">$title</strong>" . PHP_EOL . "<br><br><section style=\"background-color: #f1f1f1; padding: 5px;\">$contents</section><br><br></pre>");
     }
 }
@@ -219,7 +220,91 @@ if (!function_exists("get_ip")) {
 
         return $ip;
     }
+}
 
+if (!function_exists("get_mime")) {
+    /**
+     * Get file MIME type
+     *
+     * @param string $name
+     * @return string
+     */
+    function get_mime($name)
+    {
+        // $mime = mime_content_type($name);
+
+        // if(is_value($mime)){
+        //     return $mime;
+        // }
+
+        $mime_types = array(
+
+            'txt'  => 'text/plain',
+            'htm'  => 'text/html',
+            'html' => 'text/html',
+            'php'  => 'text/html',
+            'css'  => 'text/css',
+            'js'   => 'application/javascript',
+            'json' => 'application/json',
+            'xml'  => 'application/xml',
+            'swf'  => 'application/x-shockwave-flash',
+            'flv'  => 'video/x-flv',
+
+            // images
+            'png'  => 'image/png',
+            'jpe'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'jpg'  => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'bmp'  => 'image/bmp',
+            'ico'  => 'image/vnd.microsoft.icon',
+            'tiff' => 'image/tiff',
+            'tif'  => 'image/tiff',
+            'svg'  => 'image/svg+xml',
+            'svgz' => 'image/svg+xml',
+
+            // archives
+            'zip'  => 'application/zip',
+            'rar'  => 'application/x-rar-compressed',
+            'exe'  => 'application/x-msdownload',
+            'msi'  => 'application/x-msdownload',
+            'cab'  => 'application/vnd.ms-cab-compressed',
+
+            // audio/video
+            'mp3'  => 'audio/mpeg',
+            'qt'   => 'video/quicktime',
+            'mov'  => 'video/quicktime',
+
+            // adobe
+            'pdf'  => 'application/pdf',
+            'psd'  => 'image/vnd.adobe.photoshop',
+            'ai'   => 'application/postscript',
+            'eps'  => 'application/postscript',
+            'ps'   => 'application/postscript',
+
+            // ms office
+            'doc'  => 'application/msword',
+            'rtf'  => 'application/rtf',
+            'xls'  => 'application/vnd.ms-excel',
+            'ppt'  => 'application/vnd.ms-powerpoint',
+
+            // open office
+            'odt'  => 'application/vnd.oasis.opendocument.text',
+            'ods'  => 'application/vnd.oasis.opendocument.spreadsheet',
+        );
+
+        $ext = strtolower(array_pop(explode('.', $name)));
+        if (array_key_exists($ext, $mime_types)) {
+            return $mime_types[$ext];
+        } elseif (function_exists('finfo_open')) {
+            $finfo    = finfo_open(FILEINFO_MIME);
+            $mimetype = finfo_file($finfo, $name);
+            finfo_close($finfo);
+            return $mimetype;
+        } else {
+            return 'application/octet-stream';
+        }
+    }
 }
 
 if (!function_exists("is_assoc_array")) {
@@ -249,6 +334,84 @@ if (!function_exists("is_assoc_array")) {
         }
 
         return array_keys($array) !== range(0, count($array) - 1);
+    }
+}
+
+if (!function_exists("is_base64")) {
+    /**
+     * Check is string is valid base64
+     *
+     * @param string $s
+     * @return bool
+     */
+    function is_base64($s)
+    {
+        $s = trim($s);
+
+        // Check if there are valid base64 characters
+        if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $s)) {
+            return false;
+        }
+
+        // Decode the string in strict mode and check the results
+        $decoded = base64_decode($s, true);
+        if (false === $decoded) {
+            return false;
+        }
+
+        // Encode the string again
+        if (base64_encode($decoded) != $s) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists("is_binary")) {
+/**
+ * Check the string is binary or plain text
+ * 
+ * @param mixed $data
+ * @return bool
+ */
+    function is_binary($data)
+    {
+        $blk = substr($data, 0, 512);
+
+        return (
+            false or substr_count($blk, "^ -~", "^\r\n") / 512 > 0.3
+            or substr_count($blk, "\x00") > 0
+        );
+
+    }
+}
+
+if (!function_exists("is_binary_file")) {
+    /**
+     * Check the file is binary or plain text file
+     * 
+     * @param string $file File name with full path
+     * @return bool 
+     */
+    function is_binary_file($file)
+    {
+        if (file_exists($file)) {
+            if (!is_file($file)) {
+                return 0;
+            }
+
+            $fh  = fopen($file, "r");
+            $blk = fread($fh, 512);
+            fclose($fh);
+            clearstatcache();
+
+            return (
+                0 or substr_count($blk, "^ -~", "^\r\n") / 512 > 0.3
+                or substr_count($blk, "\x00") > 0
+            );
+        }
+        return 0;
     }
 }
 
@@ -298,7 +461,6 @@ if (!function_exists("is_tf")) {
     {
         return (isset($var) && is_bool($var) ? true : false);
     }
-
 }
 
 if (!function_exists("is_value")) {
@@ -413,7 +575,7 @@ if (!function_exists("rtn")) {
 
 /**
  * Write Array or Object into string
- * 
+ *
  * @param mixed $array
  * @return string
  */
@@ -421,10 +583,10 @@ if (!function_exists("tostring")) {
     function tostring($array)
     {
         ob_start();
-            print_r($array);
-            $contents = ob_get_contents();
+        print_r($array);
+        $contents = ob_get_contents();
         ob_end_clean();
-        
+
         $contents = str_replace("Array\n(", "", $contents);
         $contents = substr($contents, 0, -2);
         return $contents;
