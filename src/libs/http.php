@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 06/05/2019 18:53:39
- * @last modified     : 22/03/2020 22:09:51
+ * @last modified     : 25/03/2020 12:22:22
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -47,7 +47,7 @@ class http
      */
     public function __construct()
     {
-        $this->action = "get";
+        $this->action = (isset($_SERVER['REQUEST_METHOD']) ? strtolower(trim($_SERVER['REQUEST_METHOD'])) : "get");
         $this->_get   = $_GET;
         $this->_get   = preg_replace("'<script[^>]*?" . "" . ">.*?</script>'si", "", $this->_get);
         $this->_get   = filter_var_array($this->_get, FILTER_SANITIZE_STRING);
@@ -67,9 +67,9 @@ class http
             array("options" => array($this, "sanitize_min_clean_array"))
         );
 
-        if (count($this->_post) > 0) {
-            $this->action = "post";
-        }
+        // if (count($this->_post) > 0) {
+        //     $this->action = "post";
+        // }
 
         $this->_raws = file_get_contents("php://input");
 
@@ -83,110 +83,16 @@ class http
 
             $this->_post = array_merge($this->_post, $this->_json);
         } else {
-            $this->action = trim(strtolower($_SERVER['REQUEST_METHOD']));
+            // $this->action = trim(strtolower($_SERVER['REQUEST_METHOD']));
             if ($this->action == "put") {
                 $chunk = 8192;
 
+                if (!is_binary($this->_raws)) {
+                    $this->http->http_error(404);
+                }
+
                 if (!is_null($this->_raws) && is_array($this->_raws)) {
-                    try {
-                        // if (!($putData = fopen("php://input", "r"))) {
-                        //     throw new \Exception("Can't get PUT data.");
-                        // }
-
-                        // now the params can be used like any other variable
-                        // see below after input has finished
-
-                        $tot_write   = 0;
-                        $tmp_dir     = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
-                        $tmpFileName = tempnam($tmp_dir, 'tmp');
-                        // Create a temp file
-                        if (!is_file($tmpFileName)) {
-                            fclose(fopen($tmpFileName, "x")); //create the file and close it
-                            // Open the file for writing
-                            if (!($fp = fopen($tmpFileName, "w"))) {
-                                throw new \Exception("Can't write to tmp file");
-                                die("Can't write to tmp file");
-                                exit;
-
-                            }
-
-                            // Read the data a chunk at a time and write to the file
-                            while ($data = fread($this->_raws, $chunk)) {
-                                $chunk_read = strlen($data);
-                                if (($block_write = fwrite($fp, $data)) != $chunk_read) {
-                                    throw new \Exception("Can't write more to tmp file");
-                                    die("Can't write more to tmp file");
-                                    exit;
-                                }
-
-                                $tot_write += $block_write;
-                            }
-
-                            if (!fclose($fp)) {
-                                throw new \Exception("Can't close tmp file");
-                                die("Can't close tmp file");
-                                exit;
-                            }
-
-                            // unset($this->_raws);
-                        } else {
-                            // Open the file for writing
-                            if (!($fp = fopen($tmpFileName, "a"))) {
-                                throw new \Exception("Can't write to tmp file");
-                                die("Can't write to tmp file");
-                                exit;
-                            }
-
-                            // Read the data a chunk at a time and write to the file
-                            while ($data = fread($this->_raws, $chunk)) {
-                                $chunk_read = strlen($data);
-                                if (($block_write = fwrite($fp, $data)) != $chunk_read) {
-                                    throw new \Exception("Can't write more to tmp file");
-                                    die("Can't write more to tmp file");
-                                    exit;
-                                }
-
-                                $tot_write += $block_write;
-                            }
-
-                            if (!fclose($fp)) {
-                                throw new \Exception("Can't close tmp file");
-                                die("Can't close tmp file");
-                                exit;
-                            }
-
-                            // unset($this->_raws);
-                        }
-
-                        $file_size = filesize($tmpFileName);
-
-                        // Check file length and MD5
-                        // if ($tot_write != $_SERVER['CONTENT_LENGTH']) {
-                        if ($tot_write != $file_size) {
-                            throw new \Exception("Wrong file size");
-                            die("Wrong file size");
-                            exit;
-                        }
-
-                        // $md5_arr = explode(' ', exec("md5sum $tmpFileName"));
-                        // $md5     = $md5_arr[0];
-                        // if ($md5 != $md5sum) {
-                        //     throw new \Exception("Wrong md5");
-                        // }
-
-                        $this->_files['file']['tmp_name'] = $tmpFileName;
-                        $this->_files['file']['name']     = (is_value($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : uniqid(rand(), true) . $this->mime2ext(mime_content_type($tmpFileName)));
-                        $this->_files['file']['size']     = $file_size;
-                        $this->_files['file']['type']     = mime_content_type($tmpFileName);
-
-                        unset($file_size);
-                        unset($tmpFileName);
-                        unset($tmp_dir);
-                        unset($tot_write);
-                    } catch (\Exception $e) {
-                        echo '', $e->getMessage(), "\n";
-                        exit;
-                    }
+                    $this->_files = $this->receivefile();
                 } else {
                     throw new \Exception("Can't get PUT data.");
                     die("Can't get PUT data.");
@@ -274,7 +180,7 @@ class http
 
         $this->header = $this->get_headers();
 
-        if(isset($this->header['Authorization'])){
+        if (isset($this->header['Authorization'])) {
             if (isset($_SERVER['PHP_AUTH_USER'])) {
                 $this->header['user'] = $_SERVER['PHP_AUTH_USER'];
             }
@@ -288,8 +194,8 @@ class http
             $this->is_jwt_auth = (isset(config::get("flayer", "jwt")['enabled']) ? (bool) config::get("flayer", "jwt")['enabled'] : "false");
 
             if (is_array($this->_post) && count($this->_post)) {
-                $this->action = "post";
-                $this->_post  = [];
+                // $this->action = "post";
+                $this->_post = [];
             }
 
             foreach ($this->header as $header => $value) {
@@ -370,39 +276,39 @@ class http
 
     /**
      * Return HTTP error
-     * 
-     * @param integer $code 
-     * @param string $additional_info  
+     *
+     * @param integer $code
+     * @param string $additional_info
      */
     public function http_error($code, $additional_info = null)
     {
         // $protocol = strchr($_SERVER['SERVER_PROTOCOL'], '.', true);
         // header("HTTP/1.0 403 Forbidden");
 
-        switch($code){
+        switch ($code) {
             case "401":
                 $dscpt = "401 Unauthorized";
-            break;
+                break;
 
             case "403":
                 $dscpt = "403 Forbidden";
-            break;
+                break;
 
             case "404":
                 $dscpt = "404 Not Found";
-            break;
+                break;
 
             case "405":
                 $dscpt = "405 Method Not Allowed";
-            break;
+                break;
 
             case "406":
                 $dscpt = "406 Not Acceptable";
-            break;
+                break;
         }
 
         $protocol = $_SERVER['SERVER_PROTOCOL'];
-        header($protocol . ' '. $dscpt .( is_value($additional_info) ? ".  {$additional_info}" : "" ));
+        header($protocol . ' ' . $dscpt . (is_value($additional_info) ? ".  {$additional_info}" : ""));
         exit;
     }
 
@@ -656,6 +562,306 @@ class http
         ];
 
         return isset($mime_map[$mime]) === true ? "." . $mime_map[$mime] : "";
+    }
+
+    public function receivefile()
+    {
+        $CHUNK    = 8192;
+        $mime     = "";
+        $name     = "";
+        $var_name = "file";
+
+        try {
+            if (!($putData = fopen("php://input", "r"))) {
+                throw new \Exception("Can't get PUT data.");
+            }
+
+            // now the params can be used like any other variable
+            // see below after input has finished
+
+            if ($this->http->action == "put" && (stripos($_SERVER['CONTENT_TYPE'], "multipart") !== false || stripos($_SERVER['CONTENT_TYPE'], "x-www-form-urlencoded") !== false)) {
+                $raw_data = '';
+
+                /* Read the data 1 KB at a time and write to the file */
+                while ($chunk = fread($putData, 8192)) {
+                    $raw_data .= $chunk;
+                }
+
+                /* Close the streams */
+                fclose($putData);
+
+                // Fetch content and determine boundary
+                $boundary = substr($raw_data, 0, strpos($raw_data, "\r\n"));
+
+                if (empty($boundary)) {
+                    parse_str($raw_data, $data);
+                    // $GLOBALS['_PUT'] = $data;
+                    return;
+                }
+
+                // Fetch each part
+                $parts = array_slice(explode($boundary, $raw_data), 1);
+                $data  = array();
+
+                if (count($parts) > 1) {
+                    if (stripos(trim($parts[1]), "Content-Disposition") !== false) {
+                        $is_multiple = true;
+                    } else {
+                        $is_multiple = false;
+                    }
+                } else {
+                    $is_multiple = false;
+                }
+
+                foreach ($parts as $part) {
+                    // If this is the last part, break
+                    if ($part == "--\r\n") {
+                        break;
+                    }
+
+                    // Separate content from headers
+                    $part                     = ltrim($part, "\r\n");
+                    list($raw_headers, $body) = explode("\r\n\r\n", $part, 2);
+
+                    // Parse the headers list
+                    $raw_headers = explode("\r\n", $raw_headers);
+                    $headers     = array();
+                    foreach ($raw_headers as $header) {
+                        list($name, $value)         = explode(':', $header);
+                        $headers[strtolower($name)] = ltrim($value, ' ');
+                    }
+
+                    // Parse the Content-Disposition to get the field name, etc.
+                    if (isset($headers['content-disposition'])) {
+                        $filename = null;
+                        $tmp_name = null;
+                        preg_match(
+                            '/^(.+); *name="([^"]+)"(; *filename="([^"]+)")?/',
+                            $headers['content-disposition'],
+                            $matches
+                        );
+                        list(, $type, $name) = $matches;
+                        $name                = str_replace("[]", "", $name);
+
+                        if (is_base64($body)) {
+                            $_        = pathinfo($_SERVER['REQUEST_URI']);
+                            $filename = $_['basename'];
+                            $ext      = (isset($_['extension']) ? $_['extension'] : "");
+
+                            $body = base64_decode($body);
+                            // $matches[4] = bin2hex(random_bytes(10));
+                            $matches[4] = $filename;
+                            $value      = get_mime($ext);
+                        }
+
+                        //Parse File
+                        if (isset($matches[4])) {
+                            //if labeled the same as previous, skip
+                            // if (isset($_FILES[$matches[2]])) {
+                            //     continue;
+                            // }
+
+                            //get filename
+                            $filename = $matches[4];
+
+                            //get tmp name
+                            $filename_parts = pathinfo($filename);
+                            $tmp_name       = tempnam(ini_get('upload_tmp_dir'), $filename_parts['filename']);
+
+                            //populate $_FILES with information, size may be off in multibyte situation
+
+                            if ($is_multiple) {
+                                $_FILES[$name]['error'][]    = 0;
+                                $_FILES[$name]['name'][]     = $filename;
+                                $_FILES[$name]['tmp_name'][] = $tmp_name;
+                                $_FILES[$name]['size'][]     = strlen($body);
+                                $_FILES[$name]['type'][]     = $value;
+                            } else {
+                                $_     = pathinfo($_SERVER['REQUEST_URI']);
+                                $_name = $_['basename'];
+                                $ext   = (isset($_['extension']) ? $_['extension'] : "");
+
+                                if (is_value($ext)) {
+                                    $filename = $_name;
+                                }
+
+                                $_FILES[$name] = [
+                                    'error'    => 0,
+                                    'name'     => $filename,
+                                    'tmp_name' => $tmp_name,
+                                    'size'     => strlen($body),
+                                    'type'     => $value,
+                                ];
+
+                                unset($_);
+                                unset($_name);
+                            }
+
+                            //place in temporary directory
+                            file_put_contents($tmp_name, $body);
+                        }
+                        //Parse Field
+                        else {
+                            $data[$name] = substr($body, 0, strlen($body) - 2);
+                        }
+                    }
+
+                }
+
+                // $GLOBALS['_PUT'] = $data;
+                return $_FILES;
+
+            } else {
+                $tot_write   = 0;
+                $tmp_dir     = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
+                $tmpFileName = tempnam($tmp_dir, 'tmp');
+                // Create a temp file
+                if (!is_file($tmpFileName)) {
+                    fclose(fopen($tmpFileName, "x")); //create the file and close it
+                    // Open the file for writing
+                    if (!($fp = fopen($tmpFileName, "w"))) {
+                        throw new \Exception("Can't write to tmp file");
+                    }
+
+                    // Read the data a chunk at a time and write to the file
+                    while ($data = fread($putData, $CHUNK)) {
+                        $chunk_read = strlen($data);
+                        if (($block_write = fwrite($fp, $data)) != $chunk_read) {
+                            throw new \Exception("Can't write more to tmp file");
+                        }
+
+                        $tot_write += $block_write;
+                    }
+
+                    if (!fclose($fp)) {
+                        throw new \Exception("Can't close tmp file");
+                    }
+
+                    unset($putData);
+                } else {
+                    // Open the file for writing
+                    if (!($fp = fopen($tmpFileName, "a"))) {
+                        throw new \Exception("Can't write to tmp file");
+                    }
+
+                    $i = 0;
+                    // Read the data a chunk at a time and write to the file
+                    while ($data = fread($putData, $CHUNK)) {
+                        // if ($i == 0) {
+                        //     if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "PUT") {
+                        //         if (stripos($_SERVER['CONTENT_TYPE'], "multipart") !== false) {
+                        //             $lines = explode("\n", substr($data, 0, 512));
+                        //             if (isset($lines) && is_array($lines) && count($lines) > 0) {
+                        //                 foreach ($lines as $k => $v) {
+                        //                     if (!self::is_binary($v)) {
+                        //                         // echo $v."\n";
+
+                        //                         if (stripos($v, "name=") !== false) {
+                        //                             preg_match("|name=\"(.*?)\"|si", $v, $reg);
+                        //                             if (is_array($reg) && count($reg) > 0) {
+                        //                                 $var_name = $reg[1];
+                        //                             }
+
+                        //                             unset($reg);
+                        //                         }
+
+                        //                         if (stripos($v, "filename=") !== false) {
+                        //                             preg_match("|filename=\"(.*?)\"|si", $v, $reg);
+                        //                             if (is_array($reg) && count($reg) > 0) {
+                        //                                 $name = $reg[1];
+                        //                             }
+
+                        //                             unset($reg);
+                        //                         }
+
+                        //                         if (stripos($v, "Content-Type") !== false) {
+                        //                             $mime = trim(str_replace("Content-Type: ", "", $v));
+                        //                         }
+                        //                     }
+                        //                 }
+                        //             }
+
+                        //             unset($lines);
+                        //         }
+                        //     }
+                        // }
+
+                        $chunk_read = strlen($data);
+                        if (($block_write = fwrite($fp, $data)) != $chunk_read) {
+                            throw new \Exception("Can't write more to tmp file");
+                        }
+
+                        $tot_write += $block_write;
+                        ++$i;
+                    }
+
+                    if (!fclose($fp)) {
+                        throw new \Exception("Can't close tmp file");
+                    }
+
+                    unset($putData);
+                }
+
+                $file_size = filesize($tmpFileName);
+
+                // Check file length and MD5
+                // if ($tot_write != $_SERVER['CONTENT_LENGTH']) {
+                // if ($tot_write != $file_size) {
+                //     throw new Exception("Wrong file size");
+                // }
+
+                // $md5_arr = explode(' ', exec("md5sum $tmpFileName"));
+                // $md5     = $md5_arr[0];
+                // if ($md5 != $md5sum) {
+                //     throw new Exception("Wrong md5");
+                // }
+
+                // $ext = pathinfo($_SERVER['REQUEST_URI'], PATHINFO_EXTENSION);
+                // pre(parse_url($_SERVER['REQUEST_SCHEME']."://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']));
+                // $file['file']['name'] = uniqid(rand(), true)
+
+                if (!is_value($name)) {
+                    $_ = pathinfo($_SERVER['REQUEST_URI']);
+                } else {
+                    $_ = pathinfo($name);
+                }
+
+                $name = $_['basename'];
+                $ext  = (isset($_['extension']) ? $_['extension'] : "");
+
+                if (!is_value($mime)) {
+                    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == "PUT") {
+                        if (stripos($_SERVER['CONTENT_TYPE'], "multipart") !== false) {
+                            $mime = mime_content_type($tmpFileName);
+                        } else {
+                            $mime = $_SERVER['CONTENT_TYPE'];
+                        }
+                    } else {
+                        $mime = mime_content_type($tmpFileName);
+                    }
+                }
+
+                $_FILES[$var_name]['tmp_name'] = $tmpFileName;
+                $_FILES[$var_name]['name']     = (is_value($ext) ? $name : bin2hex(random_bytes(10)));
+                $_FILES[$var_name]['size']     = $file_size;
+                $_FILES[$var_name]['type']     = (is_value($mime) ? $mime : get_mime($_FILES['file']['name']));
+
+                unset($_);
+                unset($mime);
+
+                unset($file_size);
+                unset($tmpFileName);
+                unset($tmp_dir);
+                unset($tot_write);
+
+                return $_FILES;
+
+            }
+        } catch (\Exception $e) {
+            echo '', $e->getMessage(), "\n";
+        }
+
+        return [];
     }
 
     private function sanitize($string)
