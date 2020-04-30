@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 30/04/2020 17:08:43
+ * @last modified     : 30/04/2020 21:00:41
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -17,11 +17,9 @@ namespace honwei189;
  * 
  * storage::path("product_files", "product/{{ ref_id }}");
  * 
- * storage::save_to_temp($_FILES['file']);
+ * storage::save($_FILES['file']);
  * 
  * storage::db_table("product_files")->path("product/{{ ref_id }}")->save($_FILES['file'], 1);
- * 
- * or;
  * 
  * storage::set(["ref_id" => 1, "ref_name" => "product"]);
  * 
@@ -34,9 +32,13 @@ namespace honwei189;
  * To save files:
  * 
  * 
+ * #Save data into table = product_files, and save table's column ref_id, ref_name
  * 
- * storage::db_table("product_files")->set(["ref_id" => 1, "ref_name" => "product"])->path("product/{{ ref_id }}")->save();
+ * storage::db_table("product_files")->set(["ref_id" => 1, "ref_name" => "product"])->path("product/{{ ref_id }}");
  * 
+ * or;
+ * 
+ * storage::db_table("product_files")->save(); // Save file to default location
  * 
  * storage::save();
  * 
