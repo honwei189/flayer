@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 30/04/2020 17:03:37
+ * @last modified     : 30/04/2020 17:08:43
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -23,13 +23,19 @@ namespace honwei189;
  * 
  * or;
  * 
- * storage::db_table("product_files")->set(["ref_id" => 1, "ref_name" => "product"])->path("product/{{ ref_id }}")->save();
- * 
  * storage::set(["ref_id" => 1, "ref_name" => "product"]);
  * 
  * or;
  * 
  * storage::set_ref_id(1);
+ * 
+ * 
+ * 
+ * To save files:
+ * 
+ * 
+ * 
+ * storage::db_table("product_files")->set(["ref_id" => 1, "ref_name" => "product"])->path("product/{{ ref_id }}")->save();
  * 
  * 
  * storage::save();
@@ -51,7 +57,20 @@ namespace honwei189;
  * $this->storage = new storage("product_files", "product/{{ ref_id }}");
  * $this->storage->save((is_value($check) && is_numeric($check) ? $check : null))->to($this->file_path . "/{{ userid }}/{{ tag }}-");
  * 
+ * 
+ * 
+ * To download file :
+ * 
+ * storage::db_table("product_files")->get($image_tag);
+ * 
+ * or;
+ * 
+ * storage::db_table("product_files")->get($file_id);
  *
+ * or;
+ * 
+ * $this->storage->get($image_tag);
+ * 
  *
  * @package     flayer
  * @subpackage
