@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 02/05/2020 16:33:28
+ * @last modified     : 02/05/2020 16:42:40
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -154,7 +154,7 @@ class store_files
 
             unset($id);
 
-            // $this->debug();
+            // $this->db->debug();
             $this->db->cols([
                 "id",
                 "name",
@@ -166,7 +166,7 @@ class store_files
             ]);
             // $check = $this->where("userid", $this->_user)->get_row();
             $get = $this->db->get();
-
+            
             if (is_array($get) && count($get) > 0) {
                 $this->open_file($get['path'] . "/" . $get['name']);
             } else {
