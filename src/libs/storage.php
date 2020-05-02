@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 30/04/2020 21:00:41
+ * @last modified     : 02/05/2020 21:02:40
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -50,6 +50,13 @@ namespace honwei189;
  * 
  * storage::save($_FILES);
  * 
+ * or;
+ * 
+ * storage::save($_FILES, 12); // store file and update record with id = 12
+ * 
+ * or;
+ * 
+ * storage::save(12); // store file and update record with id = 12
  * 
  * or;
  * 

@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 02/05/2020 16:42:40
+ * @last modified     : 02/05/2020 21:03:50
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -127,9 +127,11 @@ class store_files
      *
      * storage::get("FILE_TAG"); //by file tag.  Can get it from database table, column name = tag
      * storage::get(123); //by file id
+     * storage::get("/abc/aaa/abc.jpg"); //get abc.jpg from dir = /abc/aaa
      *
      * $store->get("FILE_TAG");
      * $store->get(122);
+     * $store->get("/abc/aaa/abc.jpg");
      *
      * @param string $file File ID or file tag
      * @return stream|json
@@ -137,6 +139,10 @@ class store_files
     public function get($file)
     {
         $this->called[] = 'get';
+
+        if(is_file($file)){
+            return $this->open_file($file);
+        }
 
         if (is_value($this->db_table)) {
             $id = flayer::crypto()->decrypt($file);
@@ -231,7 +237,7 @@ class store_files
         }
 
         if (is_value($this->db_table) && !$this->check_table_exists()) {
-            // return $this->return(0, "DB table not exist");
+            // return [0, "DB table not exist"];
             $this->create_table();
         }
 
@@ -253,25 +259,27 @@ class store_files
                 $tag = $this->tag;
 
                 if ((int) $this->id > 0) {
-                    // $this->debug();
+                    // $this->db->debug();
                     $this->by_id($this->id);
                     $get = $this->db->get("path, name");
                     if (is_array($get) && count($get) > 0) {
-                        unlink($get['path'] . "/" . $get['name']);
+                        if(file_exists($get['path'] . "/" . $get['name'])){
+                            unlink($get['path'] . "/" . $get['name']);
+                        }
                     }
                 }
 
-                // $this->debug();
+                // $this->db->debug();
                 if ($this->db->save(((int) $this->id > 0 ? $this->id : null))) {
                     // $this->id = $this->_id;
-                    return $this->return(1, ["file_id" => $this->_id, "tag" => $tag]);
+                    return [1, ["file_id" => $this->_id, "tag" => $tag]];
                 } else {
-                    return $this->return(0);
+                    return [0];
                 }
 
             }
         } else {
-            return $this->return(0);
+            return [0];
         }
     }
 
@@ -377,12 +385,12 @@ class store_files
         }
 
         if (is_null($file)) {
-            return $this->return(1);
+            return [1];
         } elseif (count($file) === count($file, COUNT_RECURSIVE)) {
             //is single file
             if (isset($file['error']) && $file['error'] == 4) {
                 //if file not uploaded, skip upload process
-                return $this->return(1);
+                return [1];
             }
         }
 
@@ -403,7 +411,7 @@ class store_files
         $this->called[] = 'save_from_dir';
 
         if (!is_dir($full_path_dir)) {
-            return $this->return(0, "Directory not found: $full_path_dir");
+            return [0, "Directory not found: $full_path_dir"];
         }
 
         $dir = glob("$full_path_dir/*", GLOB_BRACE);
@@ -458,7 +466,7 @@ class store_files
             if (!in_array("save", $this->called)) {
                 return $this;
             } else {
-                return $this->return(1);
+                return [1];
             }
         }
     }
@@ -496,7 +504,7 @@ class store_files
             `status` VARCHAR(2) NOT NULL DEFAULT 'A',
             `crdt` DATETIME NOT NULL,
             `crby` VARCHAR(150) NOT NULL,
-            `lupdate` DATETIME,
+            `lupdt` DATETIME,
             `lupby` VARCHAR(150),
             PRIMARY KEY (`id`),
             INDEX `" . $this->db_table . "_idx` (`id`, `ref_id`),
@@ -616,7 +624,7 @@ class store_files
 
         header("Content-type: $Ctype");
         //header('Content-Disposition: inline; filename="' . $fileinfo['basename'] . '"'); //use inline for browser cache to improve loading speed
-        header('Content-Disposition: inline; filename="output.' . $file_extension . '"'); //use inline for browser cache to improve loading speed
+        header('Content-Disposition: inline; filename="'.$this->translate_tpl_code($filename).'.' . $file_extension . '"'); //use inline for browser cache to improve loading speed
         header("Content-Length: " . $size);
 
         set_time_limit(0);
@@ -676,7 +684,7 @@ class store_files
                     $error     = $this->upload_error($error);
 
                     if (isset($error) && is_value($error)) {
-                        return $this->return(0, $error);
+                        return [0, $error];
                     }
 
                     if (is_value($new_file_name)) {
@@ -692,7 +700,7 @@ class store_files
             $error = $this->upload_error($file['error']);
 
             if (isset($error) && is_value($error)) {
-                return $this->return(0, $error);
+                return [0, $error];
             }
 
             if (!empty($file['tmp_name']) && is_uploaded_file($file['tmp_name'])) {
