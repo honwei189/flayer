@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 02/05/2020 21:03:50
+ * @last modified     : 02/05/2020 21:15:08
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -276,7 +276,8 @@ class store_files
                 } else {
                     return [0];
                 }
-
+            }else{
+                return [1, ["tag" => $this->tag]];
             }
         } else {
             return [0];
@@ -463,7 +464,7 @@ class store_files
         if (!is_null($this->temp_file)) {
             return $this->save_process($this->temp_file);
         } else {
-            if (!in_array("save", $this->called)) {
+            if (!in_array("save", $this->called) && !in_array("save_from_dir", $this->called)) {
                 return $this;
             } else {
                 return [1];
@@ -710,7 +711,7 @@ class store_files
                 if (is_value($new_file_name)) {
                     $this->file['name'] = $this->translate_tpl_code($new_file_name . $file['name']);
                 }
-
+                
                 return $this->put($file['tmp_name'], $path . $this->file['name']);
             }
         }
