@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 21/04/2019 21:15:39
- * @last modified     : 23/12/2019 21:52:57
+ * @last modified     : 02/05/2020 16:16:04
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -54,7 +54,7 @@ class data
     public static function get($key_name)
     {
         if ($key_name == "_user" || $key_name == "user") {
-            return self::$$key_name;
+            return self::$_user;
         } else {
             return (isset(self::$data[$key_name]) && is_value(self::$data[$key_name]) ? self::$data[$key_name] : "");
         }

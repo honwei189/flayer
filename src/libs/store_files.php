@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 30/04/2020 16:58:13
+ * @last modified     : 02/05/2020 16:33:28
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -65,14 +65,14 @@ class store_files
 
     public function __construct($db_table = "", $storage_path = "", $use_default_storage_path = false)
     {
-        parent::__construct();
         flayer::fdo()->set_table($this->table);
         $this->db = flayer::fdo();
         // $this->db->set_encrypt_data(true);
         $this->db->set_encrypt_id(true);
 
+        $this->userid                   = data::get('userid');
         $this->temp_path                = sys_get_temp_dir();
-        $this->default_storage_path     = $_SERVER['DOCUMENT_ROOT'] . "/files/" . $this->_user . "/{{ tag }}";
+        $this->default_storage_path     = $_SERVER['DOCUMENT_ROOT'] . "/files/" . $this->userid . "/{{ tag }}";
         $this->use_default_storage_path = $use_default_storage_path;
 
         if (is_value($db_table)) {
@@ -82,8 +82,6 @@ class store_files
         if (is_value($storage_path)) {
             $this->storage_path = $storage_path;
         }
-
-        $this->userid = $this->_user;
     }
 
     public function __destruct()
@@ -108,7 +106,7 @@ class store_files
     {
         $this->called[] = 'db_table';
         $this->db_table = $table_name;
-        $this->set_table($table_name);
+        $this->db->set_table($table_name);
         return $this;
     }
 
@@ -141,23 +139,23 @@ class store_files
         $this->called[] = 'get';
 
         if (is_value($this->db_table)) {
-            $id = $this->crypt_decrypt($file);
+            $id = flayer::crypto()->decrypt($file);
 
             if (is_numeric($id)) {
-                $this->where("id", $id);
+                $this->db->where("id", $id);
             } else {
                 if (is_numeric($file)) {
-                    $this->where("id", (int) $file);
+                    $this->db->where("id", (int) $file);
                 } else {
                     // $this->where("(tag = '$file' or name = '$file')");
-                    $this->where("tag = '$file'");
+                    $this->db->where("tag = '$file'");
                 }
             }
 
             unset($id);
 
             // $this->debug();
-            $this->cols([
+            $this->db->cols([
                 "id",
                 "name",
                 "tag",
@@ -167,7 +165,7 @@ class store_files
                 "path",
             ]);
             // $check = $this->where("userid", $this->_user)->get_row();
-            $get = $this->get_row();
+            $get = $this->db->get();
 
             if (is_array($get) && count($get) > 0) {
                 $this->open_file($get['path'] . "/" . $get['name']);
@@ -246,9 +244,9 @@ class store_files
                 $this->db->tag   = $this->tag;
                 $this->db->path  = $path;
                 $this->db->crdt  = "now()";
-                $this->db->crby  = $this->_user;
+                $this->db->crby  = (is_value($this->userid) ? $this->userid : "system");
                 $this->db->lupdt = "now()";
-                $this->db->lupby = $this->_user;
+                $this->db->lupby = (is_value($this->userid) ? $this->userid : "system");
 
                 unset($this->file);
 
@@ -257,14 +255,14 @@ class store_files
                 if ((int) $this->id > 0) {
                     // $this->debug();
                     $this->by_id($this->id);
-                    $get = parent::get("path, name");
+                    $get = $this->db->get("path, name");
                     if (is_array($get) && count($get) > 0) {
                         unlink($get['path'] . "/" . $get['name']);
                     }
                 }
 
                 // $this->debug();
-                if (parent::save(((int) $this->id > 0 ? $this->id : null))) {
+                if ($this->db->save(((int) $this->id > 0 ? $this->id : null))) {
                     // $this->id = $this->_id;
                     return $this->return(1, ["file_id" => $this->_id, "tag" => $tag]);
                 } else {
@@ -395,14 +393,39 @@ class store_files
         return $this->save_process($file);
     }
 
-    public function save_from_tmp($temp_key)
+    /**
+     * Save files from specific locations and save records into database
+     * @param string $full_path_dir Full path location.  e.g:  /tmp/abc/aaa
+     * @return array
+     */
+    public function save_from_dir($full_path_dir)
     {
+        $this->called[] = 'save_from_dir';
 
-    }
+        if (!is_dir($full_path_dir)) {
+            return $this->return(0, "Directory not found: $full_path_dir");
+        }
 
-    public function save_to_tmp($file, $temp_key = null)
-    {
+        $dir = glob("$full_path_dir/*", GLOB_BRACE);
 
+        if (is_array($dir) && count($dir) > 0) {
+            foreach ($dir as $k => $v) {
+                $name = basename($v);
+                $seq  = 0;
+                $size = filesize($v);
+                $type = mime_content_type($v);
+
+                if (!empty($type) && $type != "directory") {
+                    $_FILES['file']['name'][]     = $name;
+                    $_FILES['file']['size'][]     = $size;
+                    $_FILES['file']['tmp_name'][] = $v;
+                    $_FILES['file']['type'][]     = $type;
+                    $_FILES['file']['error'][]    = 0;
+                }
+            }
+        }
+
+        return $this->save($_FILES);
     }
 
     /**
@@ -462,7 +485,8 @@ class store_files
     {
         $sql = "CREATE TABLE `" . $this->db_table . "` (
             `id` INT(18) NOT NULL AUTO_INCREMENT,
-            `ref_id` INT(18) NOT NULL,
+            `ref_id` INT(18) NULL,
+            `ref_name` VARCHAR(100) NULL,
             `name` VARCHAR(150) NOT NULL,
             `size` INT(18),
             `type` VARCHAR(30),
@@ -499,7 +523,15 @@ class store_files
         if (is_array($check) && count($check) > 0) {
             return true;
         } else {
-            return false;
+            if (is_object($check)) {
+                if (is_value($check->table_name)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
     }
 
@@ -613,6 +645,9 @@ class store_files
         $upload        = null;
         $path          = $this->storage_path;
         $new_file_name = null;
+        $cipher        = "aes128";
+        $ivlen         = openssl_cipher_iv_length($cipher);
+        $iv            = openssl_random_pseudo_bytes($ivlen);
 
         if (substr($path, -1) != "-" && substr($path, -1) != "_") {
             $path = $path . "/";
@@ -636,7 +671,7 @@ class store_files
                         'md5'      => $this->md5($file['tmp_name'][$i]),
                     ];
 
-                    $this->tag = md5(openssl_encrypt(gmdate("D, d M Y H:i:s", filemtime(__FILE__)), "aes128", $this->_user . ";" . $this->file['md5']));
+                    $this->tag = md5(openssl_encrypt(gmdate("D, d M Y H:i:s", filemtime(__FILE__)), $cipher, $this->file['name'] . ";" . $this->file['md5'], 0, $iv));
                     $error     = $file['error'][$i];
                     $error     = $this->upload_error($error);
 
@@ -662,7 +697,7 @@ class store_files
 
             if (!empty($file['tmp_name']) && is_uploaded_file($file['tmp_name'])) {
                 $this->file['md5'] = $this->md5($file['tmp_name']);
-                $this->tag         = md5(openssl_encrypt(gmdate("D, d M Y H:i:s", filemtime(__FILE__)), "aes128", $this->_user . ";" . $this->file['md5']));
+                $this->tag         = md5(openssl_encrypt(gmdate("D, d M Y H:i:s", filemtime(__FILE__)), $cipher, $this->file['name'] . ";" . $this->file['md5'], 0, $iv));
 
                 if (is_value($new_file_name)) {
                     $this->file['name'] = $this->translate_tpl_code($new_file_name . $file['name']);
