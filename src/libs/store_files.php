@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 03/05/2020 16:48:20
+ * @last modified     : 03/05/2020 16:49:56
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -81,7 +81,7 @@ class store_files
         $this->http                     = (flayer::exists("http") ? flayer::get("http") : flayer::bind("\\honwei189\\http"));
         $this->userid                   = data::get('userid');
         $this->temp_path                = sys_get_temp_dir();
-        $this->default_storage_path     = $_SERVER['DOCUMENT_ROOT'] . "/files/" . $this->userid . "/{{ tag }}";
+        $this->default_storage_path     = $_SERVER['DOCUMENT_ROOT'] . "/files/" . (is_value($this->userid) ? $this->userid . "/" : "") . "{{ tag }}";
         $this->use_default_storage_path = $use_default_storage_path;
 
         if (is_value($db_table)) {
@@ -139,7 +139,7 @@ class store_files
             echo json_encode(["FDO is not connected to database.  Please connect it first.  e.g:
             \$app->bind(\"honwei189\\fdo\\fdo\");
             \$app->fdo()->connect(honwei189\config::get(\"database\", \"mysql\"));
-            ", ]);
+            "]);
             exit;
         }
 
