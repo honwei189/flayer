@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 03/05/2020 15:12:43
+ * @last modified     : 03/05/2020 16:33:30
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -28,6 +28,7 @@ use \honwei189\flayer as flayer;
 class store_files
 {
     private $called                   = [];
+    private $check_exist_only         = false;
     private $default_storage_path     = null;
     private $db                       = null;
     private $db_table                 = null;
@@ -156,6 +157,23 @@ class store_files
     }
 
     /**
+     * Check is file exists
+     *
+     * @param string $file
+     * @return store_files|stream|bool|json
+     */
+    public function exists($file = null)
+    {
+        $this->check_exist_only = true;
+
+        if (is_value($file)) {
+            return $this->get($file);
+        }
+
+        return $this;
+    }
+
+    /**
      * To get stored files.
      *
      * Usage:
@@ -169,14 +187,18 @@ class store_files
      * $store->get("/abc/aaa/abc.jpg");
      *
      * @param string $file File ID or file tag
-     * @return stream|json
+     * @return stream|bool|json
      */
     public function get($file)
     {
         $this->called[] = 'get';
 
-        if (is_file($file)) {
-            return $this->open_file($file);
+        if (is_file($file) && file_exists($file)) {
+            if ($this->check_exist_only) {
+                return true;
+            } else {
+                return $this->open_file($file);
+            }
         }
 
         if (is_value($this->db_table)) {
@@ -215,16 +237,28 @@ class store_files
             $get = $this->db->get();
 
             if (is_array($get) && count($get) > 0) {
-                $this->open_file($get['path'] . "/" . $get['name']);
+                if ($this->check_exist_only) {
+                    return true;
+                } else {
+                    $this->open_file($get['path'] . "/" . $get['name']);
+                }
             } else {
                 // header('Content-Type: application/json');
                 // echo json_encode(["File not found"]);
-                return $this->http->http_error(404);
+                if ($this->check_exist_only) {
+                    return false;
+                } else {
+                    return $this->http->http_error(404);
+                }
             }
         } else {
             // header('Content-Type: application/json');
             // echo json_encode(["File not found"]);
-            return $this->http->http_error(404);
+            if ($this->check_exist_only) {
+                return false;
+            } else {
+                return $this->http->http_error(404);
+            }
         }
     }
 
@@ -283,10 +317,10 @@ class store_files
             // return [0, "DB table not exist"];
             $this->create_table();
         }
-        
-        if ($this->http->action == "put"){
+
+        if ($this->http->action == "put") {
             $stat = rename($file, $save_as);
-        }else{
+        } else {
             $stat = move_uploaded_file($file, $save_as);
         }
 
