@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 03/05/2020 16:33:30
+ * @last modified     : 03/05/2020 16:46:59
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -67,13 +67,14 @@ class store_files
 
     public function __construct($db_table = "", $storage_path = "", $use_default_storage_path = false)
     {
-        // $this->db = (flayer::exists("\\honwei189\\fdo\\fdo") ? flayer::get("\\honwei189\\fdo\\fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
-
         $this->db = (flayer::exists("fdo") ? flayer::get("fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
 
         if (is_object($this->db)) {
-            flayer::fdo()->set_table($this->table);
-            // $this->db->set_encrypt_data(true);
+            if(is_value($db_table)){
+                // flayer::fdo()->set_table($db_table);
+                $this->db->set_table($db_table);
+            }
+            
             $this->db->set_encrypt_id(true);
         }
 
