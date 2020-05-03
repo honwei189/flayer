@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 02/05/2020 21:15:08
+ * @last modified     : 03/05/2020 15:12:43
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -32,6 +32,7 @@ class store_files
     private $db                       = null;
     private $db_table                 = null;
     private $file                     = null;
+    private $http                     = null;
     private $id                       = null;
     private $storage_path             = null;
     private $use_default_storage_path = false;
@@ -65,10 +66,17 @@ class store_files
 
     public function __construct($db_table = "", $storage_path = "", $use_default_storage_path = false)
     {
-        flayer::fdo()->set_table($this->table);
-        $this->db = flayer::fdo();
-        // $this->db->set_encrypt_data(true);
-        $this->db->set_encrypt_id(true);
+        // $this->db = (flayer::exists("\\honwei189\\fdo\\fdo") ? flayer::get("\\honwei189\\fdo\\fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
+
+        $this->db = (flayer::exists("fdo") ? flayer::get("fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
+
+        if (is_object($this->db)) {
+            flayer::fdo()->set_table($this->table);
+            // $this->db->set_encrypt_data(true);
+            $this->db->set_encrypt_id(true);
+        }
+
+        $this->http = (flayer::exists("http") ? flayer::get("http") : flayer::bind("\\honwei189\\http"));
 
         $this->userid                   = data::get('userid');
         $this->temp_path                = sys_get_temp_dir();
@@ -106,7 +114,34 @@ class store_files
     {
         $this->called[] = 'db_table';
         $this->db_table = $table_name;
-        $this->db->set_table($table_name);
+
+        if (is_null($this->db)) {
+            $this->db = (flayer::exists("fdo") ? flayer::get("fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
+
+            if (is_object($this->db)) {
+                flayer::fdo()->set_table($this->table);
+                $this->db->set_encrypt_id(true);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(["Unable to find FDO"]);
+            }
+        } else {
+            $this->db->set_table($table_name);
+        }
+
+        // if(!$this->db->is_connected()){
+        //     $this->db->connect();
+        // }
+
+        if (!$this->db->is_connected()) {
+            header('Content-Type: application/json');
+            echo json_encode(["FDO is not connected to database.  Please connect it first.  e.g:
+            \$app->bind(\"honwei189\\fdo\\fdo\");
+            \$app->fdo()->connect(honwei189\config::get(\"database\", \"mysql\"));
+            ", ]);
+            exit;
+        }
+
         return $this;
     }
 
@@ -140,11 +175,17 @@ class store_files
     {
         $this->called[] = 'get';
 
-        if(is_file($file)){
+        if (is_file($file)) {
             return $this->open_file($file);
         }
 
         if (is_value($this->db_table)) {
+            if (!$this->db->is_connected()) {
+                header('Content-Type: application/json');
+                echo json_encode(["FDO is not connected to database"]);
+                return $this;
+            }
+
             $id = flayer::crypto()->decrypt($file);
 
             if (is_numeric($id)) {
@@ -172,16 +213,18 @@ class store_files
             ]);
             // $check = $this->where("userid", $this->_user)->get_row();
             $get = $this->db->get();
-            
+
             if (is_array($get) && count($get) > 0) {
                 $this->open_file($get['path'] . "/" . $get['name']);
             } else {
-                header('Content-Type: application/json');
-                echo json_encode(["File not found"]);
+                // header('Content-Type: application/json');
+                // echo json_encode(["File not found"]);
+                return $this->http->http_error(404);
             }
         } else {
-            header('Content-Type: application/json');
-            echo json_encode(["File not found"]);
+            // header('Content-Type: application/json');
+            // echo json_encode(["File not found"]);
+            return $this->http->http_error(404);
         }
     }
 
@@ -240,8 +283,14 @@ class store_files
             // return [0, "DB table not exist"];
             $this->create_table();
         }
+        
+        if ($this->http->action == "put"){
+            $stat = rename($file, $save_as);
+        }else{
+            $stat = move_uploaded_file($file, $save_as);
+        }
 
-        if (move_uploaded_file($file, $save_as)) {
+        if ($stat) {
             if (is_value($this->db_table)) {
                 $this->db->name  = $this->file['name'];
                 $this->db->size  = $this->file['size'];
@@ -263,8 +312,10 @@ class store_files
                     $this->by_id($this->id);
                     $get = $this->db->get("path, name");
                     if (is_array($get) && count($get) > 0) {
-                        if(file_exists($get['path'] . "/" . $get['name'])){
-                            unlink($get['path'] . "/" . $get['name']);
+                        if ($this->file['name'] != $get['name']) {
+                            if (file_exists($get['path'] . "/" . $get['name'])) {
+                                unlink($get['path'] . "/" . $get['name']);
+                            }
                         }
                     }
                 }
@@ -276,7 +327,7 @@ class store_files
                 } else {
                     return [0];
                 }
-            }else{
+            } else {
                 return [1, ["tag" => $this->tag]];
             }
         } else {
@@ -551,9 +602,10 @@ class store_files
      */
     private function open_file($file)
     {
-        if (!is_file($file)) {
-            header('Content-Type: application/json');
-            echo json_encode(["File not found"]);
+        if (!file_exists($file)) {
+            // header('Content-Type: application/json');
+            // echo json_encode(["File not found"]);
+            return $this->http->http_error(404);
         }
 
         $size     = filesize($file);
@@ -625,7 +677,7 @@ class store_files
 
         header("Content-type: $Ctype");
         //header('Content-Disposition: inline; filename="' . $fileinfo['basename'] . '"'); //use inline for browser cache to improve loading speed
-        header('Content-Disposition: inline; filename="'.$this->translate_tpl_code($filename).'.' . $file_extension . '"'); //use inline for browser cache to improve loading speed
+        header('Content-Disposition: inline; filename="' . $this->translate_tpl_code($filename) . '.' . $file_extension . '"'); //use inline for browser cache to improve loading speed
         header("Content-Length: " . $size);
 
         set_time_limit(0);
@@ -704,14 +756,14 @@ class store_files
                 return [0, $error];
             }
 
-            if (!empty($file['tmp_name']) && is_uploaded_file($file['tmp_name'])) {
+            if (!empty($file['tmp_name']) && file_exists($file['tmp_name'])) {
                 $this->file['md5'] = $this->md5($file['tmp_name']);
                 $this->tag         = md5(openssl_encrypt(gmdate("D, d M Y H:i:s", filemtime(__FILE__)), $cipher, $this->file['name'] . ";" . $this->file['md5'], 0, $iv));
 
                 if (is_value($new_file_name)) {
                     $this->file['name'] = $this->translate_tpl_code($new_file_name . $file['name']);
                 }
-                
+
                 return $this->put($file['tmp_name'], $path . $this->file['name']);
             }
         }

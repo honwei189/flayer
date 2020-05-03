@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 27/03/2020 14:37:29
+ * @last modified     : 02/05/2020 21:49:02
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -377,13 +377,18 @@ if (!function_exists("is_binary")) {
  */
     function is_binary($data)
     {
-        $blk = substr($data, 0, 512);
+        // $blk = substr($data, 0, 512);
 
-        return (
-            false or substr_count($blk, "^ -~", "^\r\n") / 512 > 0.3
-            or substr_count($blk, "\x00") > 0
-        );
+        // return (
+        //     false or substr_count($blk, "^ -~", "^\r\n") / 512 > 0.3
+        //     or substr_count($blk, "\x00") > 0
+        // );
 
+        if(!ctype_print($data)){
+            return true;
+        }
+
+        return false;
     }
 }
 

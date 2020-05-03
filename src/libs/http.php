@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 06/05/2019 18:53:39
- * @last modified     : 25/03/2020 12:22:22
+ * @last modified     : 03/05/2020 12:20:46
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -86,12 +86,12 @@ class http
             // $this->action = trim(strtolower($_SERVER['REQUEST_METHOD']));
             if ($this->action == "put") {
                 $chunk = 8192;
-
+                
                 if (!is_binary($this->_raws)) {
                     $this->http->http_error(404);
                 }
 
-                if (!is_null($this->_raws) && is_array($this->_raws)) {
+                if (!is_null($this->_raws) && is_value($this->_raws)) {
                     $this->_files = $this->receivefile();
                 } else {
                     throw new \Exception("Can't get PUT data.");
@@ -454,8 +454,8 @@ class http
             'video/mj2'                                                                 => 'jp2',
             'image/jpx'                                                                 => 'jp2',
             'image/jpm'                                                                 => 'jp2',
-            'image/jpeg'                                                                => 'jpeg',
-            'image/pjpeg'                                                               => 'jpeg',
+            'image/jpeg'                                                                => 'jpg',
+            'image/pjpeg'                                                               => 'jpg',
             'application/x-javascript'                                                  => 'js',
             'application/json'                                                          => 'json',
             'text/json'                                                                 => 'json',
@@ -561,7 +561,7 @@ class http
             'text/x-scriptzsh'                                                          => 'zsh',
         ];
 
-        return isset($mime_map[$mime]) === true ? "." . $mime_map[$mime] : "";
+        return isset($mime_map[$mime]) === true ? $mime_map[$mime] : "";
     }
 
     public function receivefile()
@@ -691,6 +691,7 @@ class http
                                     'tmp_name' => $tmp_name,
                                     'size'     => strlen($body),
                                     'type'     => $value,
+                                    'error'    => 0
                                 ];
 
                                 unset($_);
@@ -708,6 +709,7 @@ class http
 
                 }
 
+                $this->_raws = null;
                 // $GLOBALS['_PUT'] = $data;
                 return $_FILES;
 
@@ -715,6 +717,7 @@ class http
                 $tot_write   = 0;
                 $tmp_dir     = ini_get('upload_tmp_dir') ? ini_get('upload_tmp_dir') : sys_get_temp_dir();
                 $tmpFileName = tempnam($tmp_dir, 'tmp');
+
                 // Create a temp file
                 if (!is_file($tmpFileName)) {
                     fclose(fopen($tmpFileName, "x")); //create the file and close it
@@ -787,6 +790,7 @@ class http
                         // }
 
                         $chunk_read = strlen($data);
+                        ;
                         if (($block_write = fwrite($fp, $data)) != $chunk_read) {
                             throw new \Exception("Can't write more to tmp file");
                         }
@@ -801,14 +805,15 @@ class http
 
                     unset($putData);
                 }
-
-                $file_size = filesize($tmpFileName);
-
+                
+                // $file_size = filesize($tmpFileName);
+                $file_size = $tot_write;
+                
                 // Check file length and MD5
-                // if ($tot_write != $_SERVER['CONTENT_LENGTH']) {
+                if ($tot_write != $_SERVER['CONTENT_LENGTH']) {
                 // if ($tot_write != $file_size) {
-                //     throw new Exception("Wrong file size");
-                // }
+                    throw new \Exception("Wrong file size");
+                }
 
                 // $md5_arr = explode(' ', exec("md5sum $tmpFileName"));
                 // $md5     = $md5_arr[0];
@@ -819,9 +824,13 @@ class http
                 // $ext = pathinfo($_SERVER['REQUEST_URI'], PATHINFO_EXTENSION);
                 // pre(parse_url($_SERVER['REQUEST_SCHEME']."://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']));
                 // $file['file']['name'] = uniqid(rand(), true)
-
+                
                 if (!is_value($name)) {
-                    $_ = pathinfo($_SERVER['REQUEST_URI']);
+                    if(stripos($_SERVER['REQUEST_URI'], "?") !== false) {
+                        $_ = pathinfo(str_replace("?", "", strchr($_SERVER['REQUEST_URI'], '?')));
+                    }else{
+                        $_ = pathinfo($_SERVER['REQUEST_URI']);
+                    }
                 } else {
                     $_ = pathinfo($name);
                 }
@@ -841,10 +850,17 @@ class http
                     }
                 }
 
+                $mime_ext = $this->mime2ext($mime);
+                
+                if($mime_ext != $ext){
+                    $name = bin2hex(random_bytes(10)).".".$mime_ext;
+                }
+                
                 $_FILES[$var_name]['tmp_name'] = $tmpFileName;
                 $_FILES[$var_name]['name']     = (is_value($ext) ? $name : bin2hex(random_bytes(10)));
                 $_FILES[$var_name]['size']     = $file_size;
                 $_FILES[$var_name]['type']     = (is_value($mime) ? $mime : get_mime($_FILES['file']['name']));
+                $_FILES[$var_name]['error']     = 0;
 
                 unset($_);
                 unset($mime);
@@ -853,6 +869,8 @@ class http
                 unset($tmpFileName);
                 unset($tmp_dir);
                 unset($tot_write);
+
+                $this->_raws = null;
 
                 return $_FILES;
 
