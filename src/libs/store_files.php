@@ -3,7 +3,7 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 03/05/2020 16:46:59
+ * @last modified     : 03/05/2020 16:48:20
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -70,16 +70,15 @@ class store_files
         $this->db = (flayer::exists("fdo") ? flayer::get("fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
 
         if (is_object($this->db)) {
-            if(is_value($db_table)){
+            if (is_value($db_table)) {
                 // flayer::fdo()->set_table($db_table);
                 $this->db->set_table($db_table);
             }
-            
+
             $this->db->set_encrypt_id(true);
         }
 
-        $this->http = (flayer::exists("http") ? flayer::get("http") : flayer::bind("\\honwei189\\http"));
-
+        $this->http                     = (flayer::exists("http") ? flayer::get("http") : flayer::bind("\\honwei189\\http"));
         $this->userid                   = data::get('userid');
         $this->temp_path                = sys_get_temp_dir();
         $this->default_storage_path     = $_SERVER['DOCUMENT_ROOT'] . "/files/" . $this->userid . "/{{ tag }}";
