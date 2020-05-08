@@ -19,8 +19,6 @@ include_once "libs/utilities.php";
  * @subpackage
  * @author      Gordon Lim <honwei189@gmail.com>
  * @link        https://github.com/honwei189/html/
- * @link        https://appsw.dev
- * @link        https://justtest.app
  * @version     "1.0.0" 
  * @since       "1.0.0" 
  */
