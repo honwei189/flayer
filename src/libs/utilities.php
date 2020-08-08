@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 02/05/2020 21:49:02
+ * @last modified     : 08/08/2020 15:23:06
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -115,23 +115,6 @@ if (!function_exists("array_insert_after")) {
         return false;
     }
 
-}
-
-/**
- * Check user privilege able to access the function or not
- *
- * @param mixed $code Privilege code.  e.g: PTS00001
- * @return boolean TRUE or FALSE
- */
-if (!function_exists("check_access_privilege")) {
-    function check_access_privilege($code)
-    {
-        if (isset($this->_user_access_privilege[$code])) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 }
 
 if (!function_exists("contains")) {
@@ -371,7 +354,7 @@ if (!function_exists("is_base64")) {
 if (!function_exists("is_binary")) {
 /**
  * Check the string is binary or plain text
- * 
+ *
  * @param mixed $data
  * @return bool
  */
@@ -384,7 +367,7 @@ if (!function_exists("is_binary")) {
         //     or substr_count($blk, "\x00") > 0
         // );
 
-        if(!ctype_print($data)){
+        if (!ctype_print($data)) {
             return true;
         }
 
@@ -395,9 +378,9 @@ if (!function_exists("is_binary")) {
 if (!function_exists("is_binary_file")) {
     /**
      * Check the file is binary or plain text file
-     * 
+     *
      * @param string $file File name with full path
-     * @return bool 
+     * @return bool
      */
     function is_binary_file($file)
     {
@@ -471,7 +454,8 @@ if (!function_exists("is_tf")) {
 if (!function_exists("is_value")) {
     function is_value(&$var)
     {
-        return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
+        // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
+        return (bool) (trim($var) ?? false);
     }
 }
 
@@ -502,7 +486,7 @@ if (!function_exists("pre")) {
 if (!function_exists("param_data_combo")) {
     function param_data_combo($combo_name, $type, $default_value = null, $prefix_empty_option = true, $extra = "", $extra_sql = null)
     {
-        if (method_exists($this, "read_all_sql")) {
+        if (method_exists(flayer::fdo(), "read_all_sql")) {
             $data  = flayer::fdo()->read_all_sql("select cd, dscpt from params where param='$type' $extra_sql and status='A'");
             $combo = "<select name=\"$combo_name\" class=\"form-control\"" . $extra . ">\n";
             if ($prefix_empty_option) {
@@ -538,7 +522,7 @@ if (!function_exists("param_data_combo")) {
 if (!function_exists("param_data_description")) {
     function param_data_description($param, $cd)
     {
-        if (method_exists($this, "read_one_sql")) {
+        if (method_exists(flayer::fdo(), "read_one_sql")) {
             $data = flayer::fdo()->read_one_sql("select dscpt from params where param = '$param' and cd = '$cd'", false, \PDO::FETCH_BOTH);
             return $data[0];
         } else {
@@ -684,7 +668,8 @@ if (!function_exists("session_check")) {
         $class = get_called_class();
         // session_destroy();
 
-        $hash = crypto::e($this->_user);
+        // $hash = crypto::e($this->_user);
+        $hash = crypto::e(session_id());
 
         if (isset($_SESSION["session_worker_$hash"][$class][$key_name])) {
             $to_time   = time();
