@@ -2,11 +2,13 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 05/05/2019 21:38:39
- * @last modified     : 23/12/2019 21:51:29
+ * @last modified     : 06/06/2020 14:51:11
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
 namespace honwei189;
+
+include_once "utilities.php";
 
 /**
  *
@@ -22,8 +24,8 @@ namespace honwei189;
  * @author      Gordon Lim <honwei189@gmail.com>
  * @link        https://github.com/honwei189/html/
  * @link        https://github.com/krasimir/php-dependency-injection/
- * @version     "1.0.0" 
- * @since       "1.0.0" 
+ * @version     "1.0.0"
+ * @since       "1.0.0"
  */
 class container
 {

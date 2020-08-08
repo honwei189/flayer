@@ -3,83 +3,85 @@
  * @version           : "1.0.0"
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 15/04/2020 11:02:52
- * @last modified     : 03/05/2020 16:51:41
+ * @last modified     : 06/06/2020 15:11:46
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
 namespace honwei189;
 
+include_once "utilities.php";
+
 /**
  *
  * Bridge to store files to disk and save records to database
- * 
+ *
  * Usages:
- * 
+ *
  * storage::path("product_files", "product/{{ ref_id }}");
- * 
+ *
  * storage::save($_FILES['file']);
- * 
+ *
  * storage::db_table("product_files")->path("product/{{ ref_id }}")->save($_FILES['file'], 1);
- * 
+ *
  * storage::set(["ref_id" => 1, "ref_name" => "product"]);
- * 
+ *
  * or;
- * 
+ *
  * storage::set_ref_id(1);
- * 
- * 
- * 
+ *
+ *
+ *
  * To save files:
- * 
- * 
+ *
+ *
  * #Save data into table = product_files, and save table's column ref_id, ref_name
- * 
+ *
  * storage::db_table("product_files")->set(["ref_id" => 1, "ref_name" => "product"])->path("product/{{ ref_id }}");
- * 
+ *
  * or;
- * 
+ *
  * storage::db_table("product_files")->save(); // Save file to default location
- * 
+ *
  * storage::save();
- * 
+ *
  * or;
- * 
+ *
  * storage::save($_FILES['file']);
- * 
+ *
  * or;
- * 
+ *
  * storage::save($_FILES);
- * 
+ *
  * or;
- * 
+ *
  * storage::save($_FILES, 12); // store file and update record with id = 12
- * 
+ *
  * or;
- * 
+ *
  * storage::save(12); // store file and update record with id = 12
- * 
+ *
  * or;
- * 
+ *
  * storage::db_table("product_files")->save()->to($this->file_path . "/{{ userid }}/{{ tag }}-");
- * 
- * 
+ *
+ *
  * $this->storage = new storage("product_files", "product/{{ ref_id }}");
  * $this->storage->save((is_value($check) && is_numeric($check) ? $check : null))->to($this->file_path . "/{{ userid }}/{{ tag }}-");
- * 
- * 
- * 
+ *
+ *
+ *
  * To download file :
- * 
+ *
  * storage::db_table("product_files")->get($image_tag);
- * 
+ *
  * or;
- * 
+ *
  * storage::db_table("product_files")->get($file_id);
  *
  * or;
- * 
+ *
  * $this->storage->get($image_tag);
- * 
+ *
  *
  * @package     flayer
  * @subpackage

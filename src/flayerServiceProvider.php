@@ -2,7 +2,7 @@
 /*
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 05/05/2019 17:45:39
- * @last modified     : 23/12/2019 21:56:59
+ * @last modified     : 06/06/2020 15:27:51
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -19,8 +19,8 @@ use Illuminate\Support\ServiceProvider;
  * @subpackage
  * @author      Gordon Lim <honwei189@gmail.com>
  * @link        https://github.com/honwei189/html/
- * @version     "1.0.0" 
- * @since       "1.0.0" 
+ * @version     "1.0.0"
+ * @since       "1.0.0"
  */
 class flayerServiceProvider extends ServiceProvider
 {
@@ -44,6 +44,10 @@ class flayerServiceProvider extends ServiceProvider
             $loader->alias('http', http::class);
             config::load("flayer");
         });
+
+        $this->app->singleton(flayer::class, function ($app) {
+            return new flayer;
+        });
     }
 
     /**
@@ -60,6 +64,6 @@ class flayerServiceProvider extends ServiceProvider
 
     public function provides()
     {
-        // return ['flayer'];
+        return [flayer::class];
     }
 }
