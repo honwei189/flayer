@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 09/08/2020 16:15:16
+ * @last modified     : 15/08/2020 14:38:18
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -455,7 +455,15 @@ if (!function_exists("is_value")) {
     function is_value(&$var)
     {
         // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
-        return (bool) (!is_array($var) && trim($var) ?? false);
+        $bool = (bool) (!is_array($var) && $var ?? false);
+
+        if ($bool) {
+            if (is_string($var) && trim($var) === "") {
+                return false;
+            }
+        }
+
+        return $bool;
     }
 }
 
