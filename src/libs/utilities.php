@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 15/08/2020 14:38:18
+ * @last modified     : 15/08/2020 20:38:48
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -451,19 +451,46 @@ if (!function_exists("is_tf")) {
     }
 }
 
-if (!function_exists("is_value")) {
-    function is_value(&$var)
+/**
+ * Check is the variable has been declared and it has value ( array, object, string, number etc )
+ * 
+ * Alias of is_value()
+ *
+ * @var mixed
+ */
+if (!function_exists("isv")) {
+    function isv(&$var): bool
     {
-        // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
-        $bool = (bool) (!is_array($var) && $var ?? false);
-
-        if ($bool) {
+        if ((bool) ($var ?? false)) {
             if (is_string($var) && trim($var) === "") {
                 return false;
             }
+
+            return true;
         }
 
-        return $bool;
+        return false;
+    }
+}
+
+/**
+ * Check is the variable has been declared and it has value ( array, object, string, number etc )
+ *
+ * @var mixed
+ */
+if (!function_exists("is_value")) {
+    function is_value(&$var): bool
+    {
+        // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
+        if ((bool) ($var ?? false)) {
+            if (is_string($var) && trim($var) === "") {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
 
