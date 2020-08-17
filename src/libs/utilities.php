@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 15/08/2020 20:38:48
+ * @last modified     : 17/08/2020 19:18:58
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -452,45 +452,63 @@ if (!function_exists("is_tf")) {
 }
 
 /**
- * Check is the variable has been declared and it has value ( array, object, string, number etc )
- * 
- * Alias of is_value()
+ * Check is the variable has been declared and it has value.
  *
- * @var mixed
+ * Supports array, object, integer, boolean, string and etc...
+ *
+ * @param mixed $var
+ * @return bool
  */
 if (!function_exists("isv")) {
-    function isv(&$var): bool
+    function isv(&$var)
     {
-        if ((bool) ($var ?? false)) {
-            if (is_string($var) && trim($var) === "") {
-                return false;
+        if (PHP_VERSION >= 7.3) {
+            if ($var === 0) {
+                return true;
             }
 
-            return true;
-        }
+            if ($var ?? false) {
+                return true;
+            }
 
-        return false;
+            if (isset($var)) {
+                if (is_string($var) && trim($var) == "") {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        } else {
+            if ($var === 0) {
+                return true;
+            }
+
+            if (!is_null($var) && $var !== "") {
+                return true;
+            }
+
+            if (isset($var)) {
+                return true;
+            }
+
+            return false;
+        }
     }
+
 }
 
 /**
- * Check is the variable has been declared and it has value ( array, object, string, number etc )
+ * Check is the variable has value
  *
- * @var mixed
+ * @param mixed $var
+ * @return mixed
  */
 if (!function_exists("is_value")) {
     function is_value(&$var): bool
     {
-        // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
-        if ((bool) ($var ?? false)) {
-            if (is_string($var) && trim($var) === "") {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
+        return (!is_null($var) && $var !== "" ? true : false);
     }
 }
 
