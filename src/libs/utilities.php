@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 17/08/2020 19:18:58
+ * @last modified     : 18/08/2020 19:40:47
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -290,6 +290,29 @@ if (!function_exists("get_mime")) {
     }
 }
 
+/**
+ * Another option of isa
+ *
+ * Check against the variable is array
+ *
+ * @param string $var
+ * @return bool
+ */
+if (!function_exists("isa")) {
+    function isa(&$var)
+    {
+        if ($var ?? false) {
+            if (!is_array($var)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists("is_assoc_array")) {
     /**
      * Check if PHP array is associative or sequential
@@ -452,9 +475,38 @@ if (!function_exists("is_tf")) {
 }
 
 /**
- * Check is the variable has been declared and it has value.
+ * iss = Is string.
  *
- * Supports array, object, integer, boolean, string and etc...
+ * Check against the variable is string and has value
+ *
+ * @param string $var
+ * @return bool
+ */
+if (!function_exists("iss")) {
+    function iss(&$var)
+    {
+        if (PHP_VERSION >= 7.3) {
+            if ($var ?? false) {
+                if (is_string($var) && trim($var) == "") {
+                    return false;
+                }
+
+                return true;
+            }
+        } else {
+            if (isset($var) && is_string($var) && trim($var) == "") {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Check against the variable has been set and it has value.
+ *
+ * Valid for array, object, integer, boolean, string and etc...
  *
  * @param mixed $var
  * @return bool
@@ -532,6 +584,86 @@ if (!function_exists("pre")) {
             echo "<pre>";
             print_r($array);
             echo "</pre>";
+        }
+    }
+}
+
+/**
+ * Another option of iss
+ *
+ * Check against the variable is string and has value
+ *
+ * @param string $var
+ * @return bool
+ */
+if (!function_exists("str")) {
+    function str(&$var)
+    {
+        if ($var ?? false) {
+            if (is_string($var) && trim($var) == "") {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists("str_unique")) {
+    function str_unique($str)
+    {
+        $str   = preg_replace("/([,.?!])/", " \\1 ", $str);
+        $parts = explode(" ", $str);
+
+        foreach ($parts as $k => $v) {
+            if (preg_match('/[^a-zA-Z\d]/', $v)) {
+                $parts[$k] = "{{" . $v . ":" . $k . "}}";
+            }
+        }
+
+        $str = array_unique($parts);
+        $str = implode(" ", $str);
+        $str = preg_replace("/\{\{(.*?):[0-9]{0,20}\}\}/i", "$1", $str);
+        $str = preg_replace("/\s([,.?!])/", "\\1", $str);
+
+        return $str;
+    }
+}
+
+if (!function_exists("js_str")) {
+    function js_str($s)
+    {
+        return '"' . addcslashes($s, "\0..\37\"\\") . '"';
+    }
+}
+
+if (!function_exists("js_array")) {
+    function js_array($array, $keys_array = null)
+    {
+        if (is_null($keys_array)) {
+            return '[' . implode(',', array_map('js_str', $array)) . ']';
+        } else {
+            foreach ($array as $key => $value) {
+                $new_keys_array   = $keys_array;
+                $new_keys_array[] = $key;
+                if (is_array($value)) {
+                    echo 'javascript_array';
+                    foreach ($new_keys_array as $key) {
+                        echo '["' . $key . '"]';
+                    }
+                    echo ' = new Array();';
+
+                    js_array($value, $new_keys_array);
+                } else {
+                    echo 'javascript_array';
+                    foreach ($new_keys_array as $key) {
+                        echo '["' . $key . '"]';
+                    }
+                    echo ' = ' . js_str($value) . ";";
+                }
+            }
         }
     }
 }
