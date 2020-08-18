@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 18/08/2020 19:40:47
+ * @last modified     : 18/08/2020 19:43:37
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -291,21 +291,15 @@ if (!function_exists("get_mime")) {
 }
 
 /**
- * Another option of isa
- *
  * Check against the variable is array
  *
- * @param string $var
+ * @param array $var
  * @return bool
  */
 if (!function_exists("isa")) {
     function isa(&$var)
     {
-        if ($var ?? false) {
-            if (!is_array($var)) {
-                return false;
-            }
-
+        if (isset($var) && is_array($var)) {
             return true;
         }
 
