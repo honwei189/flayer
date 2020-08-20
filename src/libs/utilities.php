@@ -4,7 +4,7 @@
  * @version           : "1.0.1" 22/03/2020 14:26:50 Remove vendor namespace to prevent others package not belong to same vendor, unable to use it
  * @creator           : Gordon Lim <honwei189@gmail.com>
  * @created           : 13/11/2019 19:23:24
- * @last modified     : 18/08/2020 19:43:37
+ * @last modified     : 20/08/2020 15:45:00
  * @last modified by  : Gordon Lim <honwei189@gmail.com>
  */
 
@@ -291,7 +291,9 @@ if (!function_exists("get_mime")) {
 }
 
 /**
- * Check against the variable is array
+ * isa = is array
+ *
+ * Check against the variable is array and has elements
  *
  * @param array $var
  * @return bool
@@ -299,7 +301,7 @@ if (!function_exists("get_mime")) {
 if (!function_exists("isa")) {
     function isa(&$var)
     {
-        if (isset($var) && is_array($var)) {
+        if (isset($var) && is_array($var) && count($var) > 0) {
             return true;
         }
 
@@ -473,6 +475,8 @@ if (!function_exists("is_tf")) {
  *
  * Check against the variable is string and has value
  *
+ * This is much faster than is_value() and isv(), if you just check is the variable is string only
+ *
  * @param string $var
  * @return bool
  */
@@ -586,6 +590,8 @@ if (!function_exists("pre")) {
  * Another option of iss
  *
  * Check against the variable is string and has value
+ *
+ * This is much faster than is_value() and isv(), if you just check is the variable is string only
  *
  * @param string $var
  * @return bool
