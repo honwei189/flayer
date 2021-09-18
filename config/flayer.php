@@ -16,4 +16,9 @@ return [
             'HS256' => 'sha256',
         ],
     ],
+    'email'  => [
+        'send_to'      => '',
+        'sender_name'  => '',
+        'sender_email' => "no-reply@" . $_SERVER['HTTP_HOST'],
+    ],
 ];
