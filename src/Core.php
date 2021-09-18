@@ -2,7 +2,7 @@
 /**
  * Created       : 2019-05-05 05:45:39 am
  * Author        : Gordon Lim
- * Last Modified : 2021-09-14 09:42:56 pm
+ * Last Modified : 2021-09-18 04:12:43 pm
  * Modified By   : Gordon Lim
  * ---------
  * Changelog
@@ -103,12 +103,12 @@ class Core
             case "bind":
                 if (is_object($arguments[0])) {
                     return forward_static_call_array(
-                        array(__NAMESPACE__ . '\container', 'store'),
+                        array(__NAMESPACE__ . '\Container', 'store'),
                         $arguments
                     );
                 } else {
                     return forward_static_call_array(
-                        array(__NAMESPACE__ . '\container', 'build'),
+                        array(__NAMESPACE__ . '\Container', 'build'),
                         $arguments
                     );
                 }
