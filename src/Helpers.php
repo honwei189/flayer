@@ -13,6 +13,16 @@
 use honwei189\Flayer\Crypto as crypto;
 use honwei189\Flayer\Core as flayer;
 
+if (!function_exists("app")) {
+    function app($name){
+        if (strtolower($name) == "flayer") {
+            return new flayer;
+        }
+        // return (new honwei189\Flayer)->bind("honwei189\\FDO");
+        return flayer::get($name);
+    }
+}
+
 if (!function_exists("auto_date")) {
     function auto_date($date, $format = "")
     {
