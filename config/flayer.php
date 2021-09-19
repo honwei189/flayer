@@ -19,6 +19,6 @@ return [
     'email'  => [
         'send_to'      => '',
         'sender_name'  => '',
-        'sender_email' => "no-reply@" . $_SERVER['HTTP_HOST'],
+        'sender_email' => "no-reply@" . ($_SERVER['HTTP_HOST'] ?? "localhost"),
     ],
 ];
