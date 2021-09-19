@@ -10,16 +10,19 @@
 
 // namespace honwei189;
 
-use honwei189\Flayer\Crypto as crypto;
 use honwei189\Flayer\Core as flayer;
+use honwei189\Flayer\Crypto as crypto;
 
-if (!function_exists("app")) {
-    function app($name){
-        if (strtolower($name) == "flayer") {
-            return new flayer;
+if (!class_exists("Facade\\Ignition\\Support\\LaravelVersion") && !function_exists("app")) {
+    function app($name)
+    {
+        if (class_exists("honwei189\Flayer")) {
+            if (strtolower($name) == "flayer") {
+                return new flayer;
+            }
+            // return (new honwei189\Flayer)->bind("honwei189\\FDO");
+            return flayer::get($name);
         }
-        // return (new honwei189\Flayer)->bind("honwei189\\FDO");
-        return flayer::get($name);
     }
 }
 
