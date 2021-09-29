@@ -54,6 +54,10 @@ class Config
      */
     public static function get($section_name, $config_key_name)
     {
+        if (!self::is_loaded()){
+            self::load($section_name);
+        }
+
         return (isset(self::$config[$section_name][$config_key_name]) ? self::$config[$section_name][$config_key_name] : "");
     }
 
