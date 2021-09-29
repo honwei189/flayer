@@ -57,7 +57,7 @@ class Crypto
             $first_key  = base64_decode($crypto_config["key"]);
             $second_key = base64_decode($crypto_config["pin"]);
         } else {
-            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy Flayer.php from \"/vendor/honwei189/Flayer/config/\" to \"/config/\"");
+            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy flayer.php.example from \"/vendor/honwei189/Flayer/config/\" to \"/config/flayer.php\"");
             exit;
         }
 
@@ -117,7 +117,7 @@ class Crypto
             $first_key  = base64_decode($crypto_config["key"]);
             $second_key = base64_decode($crypto_config["pin"]);
         } else {
-            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy Flayer.php from \"/vendor/honwei189/Flayer/config/\" to \"/config/\"");
+            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy flayer.php.example from \"/vendor/honwei189/Flayer/config/\" to \"/config/flayer.php\"");
             exit;
         }
 
@@ -193,7 +193,7 @@ class Crypto
             $first_key  = base64_decode($crypto_config["key"]);
             $second_key = base64_decode($crypto_config["pin"]);
         } else {
-            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy Flayer.php from \"/vendor/honwei189/Flayer/config/\" to \"/config/\"");
+            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy flayer.php.example from \"/vendor/honwei189/Flayer/config/\" to \"/config/flayer.php\"");
             exit;
         }
 
@@ -236,7 +236,7 @@ class Crypto
             $first_key  = base64_decode($crypto_config["key"]);
             $second_key = base64_decode($crypto_config["pin"]);
         } else {
-            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy Flayer.php from \"/vendor/honwei189/Flayer/config/\" to \"/config/\"");
+            throw new \Exception("Flayer config file not found.  Requires for \"key\" and \"pin\"" . PHP_EOL . PHP_EOL . "Please copy flayer.php.example from \"/vendor/honwei189/Flayer/config/\" to \"/config/flayer.php\"");
             exit;
         }
 
