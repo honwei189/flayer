@@ -8,6 +8,7 @@
 
 namespace honwei189\Flayer;
 
+use honwei189\Flayer\Core as flayer;
 use honwei189\Flayer\Config as config;
 
 /**
@@ -206,7 +207,7 @@ class Http
             }
 
             if ($this->is_jwt_auth && is_value($this->_jwt_auth)) {
-                $this->_jwt = Flayer::jwt()->verify_token($this->_jwt_auth);
+                $this->_jwt = flayer::jwt()->verify_token($this->_jwt_auth);
                 if (!$this->_jwt) {
                     // header('HTTP/1.0 401 Unauthorized');
                     // exit;
