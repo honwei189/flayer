@@ -26,7 +26,28 @@ if (!class_exists("Facade\\Ignition\\Support\\LaravelVersion") && !function_exis
     }
 }
 
+if (!function_exists('a')) {
+    /**
+     * Check is array and has elements and is not empty
+     *
+     * @param mixed $array
+     * @return bool
+     */
+    function a(&$array)
+    {
+        // return (is_array($array) && $array !== [] ?? false);
+        return (is_array($array) && !empty($array) ?? false);
+    }
+}
+
 if (!function_exists("auto_date")) {
+    /**
+     * Convert date between YYYY-MM-DD and DD/MM/YYYY
+     *
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
     function auto_date($date, $format = "")
     {
         $dateStr = null;
@@ -61,24 +82,19 @@ if (!function_exists("auto_date")) {
     }
 }
 
-/*
- * Inserts a new key/value before the key in the array.
- *
- * @param $key
- *   The key to insert before.
- * @param $array
- *   An array to insert in to.
- * @param $new_key
- *   The key to insert.
- * @param $new_value
- *   An value to insert.
- *
- * @return
- *   The new array if the key exists, FALSE otherwise.
- *
- * @see array_insert_after()
- */
 if (!function_exists("array_insert_before")) {
+    /**
+     * Inserts a new key/value before the key in the array.
+     *
+     * @param $key The key to insert before.
+     * @param $array An array to insert in to.
+     * @param $new_key The key to insert.
+     * @param $new_value An value to insert.
+     *
+     * @return The new array if the key exists, FALSE otherwise.
+     *
+     * @see array_insert_after()
+     */
     function array_insert_before($key, array &$array, $new_key, $new_value)
     {
         if (array_key_exists($key, $array)) {
@@ -95,24 +111,24 @@ if (!function_exists("array_insert_before")) {
     }
 }
 
-/*
- * Inserts a new key/value after the key in the array.
- *
- * @param $key
- *   The key to insert after.
- * @param $array
- *   An array to insert in to.
- * @param $new_key
- *   The key to insert.
- * @param $new_value
- *   An value to insert.
- *
- * @return
- *   The new array if the key exists, FALSE otherwise.
- *
- * @see array_insert_before()
- */
 if (!function_exists("array_insert_after")) {
+    /**
+     * Inserts a new key/value after the key in the array.
+     *
+     * @param $key
+     *   The key to insert after.
+     * @param $array
+     *   An array to insert in to.
+     * @param $new_key
+     *   The key to insert.
+     * @param $new_value
+     *   An value to insert.
+     *
+     * @return
+     *   The new array if the key exists, FALSE otherwise.
+     *
+     * @see array_insert_before()
+     */
     function array_insert_after($key, array &$array, $new_key, $new_value)
     {
         if (array_key_exists($key, $array)) {
@@ -131,6 +147,13 @@ if (!function_exists("array_insert_after")) {
 }
 
 if (!function_exists("contains")) {
+    /**
+     * String contains specified string / keyword
+     *
+     * @param string $string Input string
+     * @param string $keyword Keyword to find in the input string
+     * @return string
+     */
     function contains($string, $keyword)
     {
         //return strpbrk($string, $keyword);
@@ -146,6 +169,17 @@ if (!function_exists("contains")) {
 }
 
 if (!function_exists("data_combo")) {
+    /**
+     * Generate HTML <select></select> with data from DB
+     *
+     * @param string $combo_name
+     * @param string $sql
+     * @param string $default_value
+     * @param string $prefix_empty_option
+     * @param string $extra
+     * @param string $extra_sql
+     * @return string
+     */
     function data_combo($combo_name, $sql, $default_value = null, $prefix_empty_option = true, $extra = "", $extra_sql = null)
     {
         $data = flayer::fdo()->read_all_sql($sql, false, \PDO::FETCH_BOTH);
@@ -181,6 +215,12 @@ if (!function_exists("data_combo")) {
 }
 
 if (!function_exists("data_description")) {
+    /**
+     * Return data description from DB
+     *
+     * @param string $sql
+     * @return string
+     */
     function data_description($sql)
     {
         $data = flayer::fdo()->read_one_sql($sql, false, \PDO::FETCH_BOTH);
@@ -189,6 +229,13 @@ if (!function_exists("data_description")) {
 }
 
 if (!function_exists("error")) {
+    /**
+     * Generate error with HTML
+     *
+     * @param string $title
+     * @param string $contents
+     * @return string
+     */
     function error($title, $contents)
     {
         throw die("<pre><strong style=\"color: red;\">$title</strong>" . PHP_EOL . "<br><br><section style=\"background-color: #f1f1f1; padding: 5px;\">$contents</section><br><br></pre>");
@@ -196,6 +243,11 @@ if (!function_exists("error")) {
 }
 
 if (!function_exists("get_ip")) {
+    /**
+     * Get real IP
+     *
+     * @return string
+     */
     function get_ip()
     {
         $ip = '';
@@ -303,15 +355,17 @@ if (!function_exists("get_mime")) {
     }
 }
 
-/**
- * isa = is array
- *
- * Check against the variable is array and has elements
- *
- * @param array $var
- * @return bool
- */
 if (!function_exists("isa")) {
+    /**
+     * isa = is array
+     *
+     * Check against the variable is array and has elements
+     *
+     * Alternate function of a()
+     *
+     * @param array $var
+     * @return bool
+     */
     function isa(&$var)
     {
         if (isset($var) && is_array($var) && count($var) > 0) {
@@ -384,12 +438,12 @@ if (!function_exists("is_base64")) {
 }
 
 if (!function_exists("is_binary")) {
-/**
- * Check the string is binary or plain text
- *
- * @param mixed $data
- * @return bool
- */
+    /**
+     * Check the string is binary or plain text
+     *
+     * @param mixed $data
+     * @return bool
+     */
     function is_binary($data)
     {
         // $blk = substr($data, 0, 512);
@@ -436,6 +490,12 @@ if (!function_exists("is_binary_file")) {
 }
 
 if (!function_exists("is_multi_array")) {
+    /**
+     * Is multidimensional arrays
+     *
+     * @param array $arr
+     * @return bool
+     */
     function is_multi_array($arr)
     {
         rsort($arr);
@@ -444,6 +504,12 @@ if (!function_exists("is_multi_array")) {
 }
 
 if (!function_exists("is_num")) {
+    /**
+     * Is numbers
+     *
+     * @param mixed $var
+     * @return bool
+     */
     function is_num($var)
     {
         return (isset($var) && is_numeric($var) ? true : false);
@@ -483,17 +549,17 @@ if (!function_exists("is_tf")) {
     }
 }
 
-/**
- * iss = Is string.
- *
- * Check against the variable is string and has value
- *
- * This is much faster than is_value() and isv(), if you just check is the variable is string only
- *
- * @param string $var
- * @return bool
- */
 if (!function_exists("iss")) {
+    /**
+     * iss = Is string.
+     *
+     * Check against the variable is string and has value
+     *
+     * This is much faster than is_value() and isv(), if you just check is the variable is string only
+     *
+     * @param string $var
+     * @return bool
+     */
     function iss(&$var)
     {
         if (PHP_VERSION >= 7.3) {
@@ -514,15 +580,15 @@ if (!function_exists("iss")) {
     }
 }
 
-/**
- * Check against the variable has been set and it has value.
- *
- * Valid for array, object, integer, boolean, string and etc...
- *
- * @param mixed $var
- * @return bool
- */
 if (!function_exists("isv")) {
+    /**
+     * Check against the variable has been set and it has value.
+     *
+     * Valid for array, object, integer, boolean, string and etc...
+     *
+     * @param mixed $var
+     * @return bool
+     */
     function isv(&$var)
     {
         if (PHP_VERSION >= 7.3) {
@@ -562,13 +628,13 @@ if (!function_exists("isv")) {
 
 }
 
-/**
- * Check is the variable has value
- *
- * @param mixed $var
- * @return mixed
- */
 if (!function_exists("is_value")) {
+    /**
+     * Check is the variable has value
+     *
+     * @param mixed $var
+     * @return mixed
+     */
     function is_value(&$var): bool
     {
         return (!is_null($var) && $var !== "" ? true : false);
@@ -576,6 +642,12 @@ if (!function_exists("is_value")) {
 }
 
 if (!function_exists("out")) {
+    /**
+     * Generate output and exit program
+     *
+     * @param string $var
+     * @return string
+     */
     function out($var)
     {
         pre($var);
@@ -587,6 +659,12 @@ if (!function_exists("out")) {
 }
 
 if (!function_exists("pre")) {
+    /**
+     * HTML pre.  To print out string / array / object with HTML <pre></pre>
+     *
+     * @param mixed $array
+     * @return mixed
+     */
     function pre($array)
     {
         if (php_sapi_name() == "cli") {
@@ -599,17 +677,17 @@ if (!function_exists("pre")) {
     }
 }
 
-/**
- * Another option of iss
- *
- * Check against the variable is string and has value
- *
- * This is much faster than is_value() and isv(), if you just check is the variable is string only
- *
- * @param string $var
- * @return bool
- */
 if (!function_exists("str")) {
+    /**
+     * Another option of iss
+     *
+     * Check against the variable is string and has value
+     *
+     * This is much faster than is_value() and isv(), if you just check is the variable is string only
+     *
+     * @param string $var
+     * @return bool
+     */
     function str(&$var)
     {
         if ($var ?? false) {
@@ -624,6 +702,12 @@ if (!function_exists("str")) {
     }
 }
 
+/**
+ * Remove duplicate words from string
+ *
+ * @param string $str Words would like to check duplicates and remove
+ * @return string
+ */
 if (!function_exists("str_unique")) {
     function str_unique($str)
     {
@@ -646,6 +730,12 @@ if (!function_exists("str_unique")) {
 }
 
 if (!function_exists("js_str")) {
+    /**
+     * JS escape
+     *
+     * @param string $s
+     * @return string
+     */
     function js_str($s)
     {
         return '"' . addcslashes($s, "\0..\37\"\\") . '"';
@@ -653,6 +743,13 @@ if (!function_exists("js_str")) {
 }
 
 if (!function_exists("js_array")) {
+    /**
+     * Generate JS array
+     *
+     * @param array $array
+     * @param array $keys_array
+     * @return string
+     */
     function js_array($array, $keys_array = null)
     {
         if (is_null($keys_array)) {
@@ -729,23 +826,23 @@ if (!function_exists("param_data_description")) {
     }
 }
 
-/**
- * Return formatted data
- * @param boolean $bool Process status.  1 = True, 0 = Failure
- * @param string $dscpt Reference data / description
- * @param string|array $additional Specific status code and additional messages.
- *
- * $additional = ["STATUS_CODE", "ADDITIONAL_MESSAGES"];
- *
- * e.g:  $additional = ["S0007", "The following files can't be imported ..... "]
- *
- * e.g:  $additional = ["S0001"]
- *
- * e.g:  $additional = "S0001"
- *
- * @var mixed
- */
 if (!function_exists("rtn")) {
+    /**
+     * Return formatted data
+     * @param boolean $bool Process status.  1 = True, 0 = Failure
+     * @param string $dscpt Reference data / description
+     * @param string|array $additional Specific status code and additional messages.
+     *
+     * $additional = ["STATUS_CODE", "ADDITIONAL_MESSAGES"];
+     *
+     * e.g:  $additional = ["S0007", "The following files can't be imported ..... "]
+     *
+     * e.g:  $additional = ["S0001"]
+     *
+     * e.g:  $additional = "S0001"
+     *
+     * @var mixed
+     */
     function rtn($bool, $dscpt = null, $additional = null)
     {
         // if ($bool && is_null($dscpt)){
@@ -760,13 +857,13 @@ if (!function_exists("rtn")) {
     }
 }
 
-/**
- * Write Array or Object into string
- *
- * @param mixed $array
- * @return string
- */
 if (!function_exists("tostring")) {
+    /**
+     * Write Array or Object into string
+     *
+     * @param mixed $array
+     * @return string
+     */
     function tostring($array)
     {
         ob_start();
@@ -780,14 +877,14 @@ if (!function_exists("tostring")) {
     }
 }
 
-/**
- * Return formatted string value
- *
- * @param string $string
- * @param string $type Value type.  e.g: crypt, number, date
- * @return string
- */
 if (!function_exists("value_format")) {
+    /**
+     * Return formatted string value
+     *
+     * @param string $string
+     * @param string $type Value type.  e.g: crypt, number, date
+     * @return string
+     */
     function value_format($string, $type = "")
     {
         switch ($type) {
@@ -808,15 +905,15 @@ if (!function_exists("value_format")) {
     }
 }
 
-/**
- * Send email
- *
- * @param string $from Sender name & email.  e.g:  XXX <no-reply@xxx.com>
- * @param string $to Recipient  e.g:  XXX <abc@xxx.com>
- * @param string $subject Email title
- * @param string $message Email contents
- */
 if (!function_exists("send_mail")) {
+    /**
+     * Send email
+     *
+     * @param string $from Sender name & email.  e.g:  XXX <no-reply@xxx.com>
+     * @param string $to Recipient  e.g:  XXX <abc@xxx.com>
+     * @param string $subject Email title
+     * @param string $message Email contents
+     */
     function send_mail($from, $to, $subject, $message)
     {
         $xsender = "";
@@ -849,14 +946,14 @@ if (!function_exists("send_mail")) {
     }
 }
 
-/**
- * Check against the session is the user rise same action within the minutes
- *
- * @param string $key_name Provide an unique key name to identifier the action
- * @param integer $minutes
- * @return boolean True = Session passed, False = Not valid, within the minutes
- */
 if (!function_exists("session_check")) {
+    /**
+     * Check against the session is the user rise same action within the minutes
+     *
+     * @param string $key_name Provide an unique key name to identifier the action
+     * @param integer $minutes
+     * @return boolean True = Session passed, False = Not valid, within the minutes
+     */
     function session_check($key_name, $minutes = 1)
     {
         if (session_status() == PHP_SESSION_NONE) {
@@ -885,32 +982,5 @@ if (!function_exists("session_check")) {
         }
 
         return true;
-    }
-}
-
-/**
- * Remove duplicate words from string
- *
- * @param string $str Words would like to check duplicates and remove
- * @return string
- */
-if (!function_exists("str_unique")) {
-    function str_unique($str)
-    {
-        $str   = preg_replace("/([,.?!])/", " \\1 ", $str);
-        $parts = explode(" ", $str);
-
-        foreach ($parts as $k => $v) {
-            if (preg_match('/[^a-zA-Z\d]/', $v)) {
-                $parts[$k] = "{{" . $v . ":" . $k . "}}";
-            }
-        }
-
-        $str = array_unique($parts);
-        $str = implode(" ", $str);
-        $str = preg_replace("/\{\{(.*?):[0-9]{0,20}\}\}/i", "$1", $str);
-        $str = preg_replace("/\s([,.?!])/", "\\1", $str);
-
-        return $str;
     }
 }
