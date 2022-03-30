@@ -35,6 +35,8 @@ class Store_files
     private $http                     = null;
     private $id                       = null;
     private $storage_path             = null;
+    private $ref_row_id               = 0;
+    private $ref_row_name             = null;
     private $use_default_storage_path = false;
     private $temp_file                = null;
     private $temp_path                = null;
@@ -108,12 +110,16 @@ class Store_files
      * Declare save file records to which database table
      *
      * @param string $table_name Database table name.  e.g:  my_files
+     * @param int $table_row_id File's reference id. Example, the file belong to which master table's sequence unique id
+     * @param string $ref_name Reference name ( bind with $table_row_id )
      * @return Store_files
      */
-    public function db_table($table_name)
+    public function db_table($table_name, $table_row_id = null, $ref_name = null)
     {
-        $this->called[] = 'db_table';
-        $this->db_table = $table_name;
+        $this->called[]     = 'db_table';
+        $this->db_table     = $table_name;
+        $this->ref_row_id   = (int) $table_row_id;
+        $this->ref_row_name = $ref_name;
 
         if (is_null($this->db)) {
             $this->db = (flayer::exists("fdo") ? flayer::get("fdo") : flayer::bind("\\honwei189\\fdo\\fdo"));
@@ -138,7 +144,7 @@ class Store_files
             echo json_encode(["FDO is not connected to database.  Please connect it first.  e.g:
             \$app->bind(\"honwei189\\fdo\\fdo\");
             \$app->fdo()->connect(honwei189\Config::get(\"database\", \"mysql\"));
-            "]);
+            ", ]);
             exit;
         }
 
@@ -186,9 +192,10 @@ class Store_files
      * $store->get("/abc/aaa/abc.jpg");
      *
      * @param string $file File ID or file tag
+     * @param bool $force_download Force to download file instead of direct open by browser
      * @return stream|bool|json
      */
-    public function get($file)
+    public function get($file, $force_download = false)
     {
         $this->called[] = 'get';
 
@@ -239,7 +246,7 @@ class Store_files
                 if ($this->check_exist_only) {
                     return true;
                 } else {
-                    $this->open_file($get['path'] . "/" . $get['name']);
+                    $this->open_file($get['path'] . "/" . $get['name'], $force_download);
                 }
             } else {
                 // header('Content-Type: application/json');
@@ -325,6 +332,7 @@ class Store_files
 
         if ($stat) {
             if (is_value($this->db_table)) {
+                $this->ref_id    = (int) $this->ref_row_id;
                 $this->db->name  = $this->file['name'];
                 $this->db->size  = $this->file['size'];
                 $this->db->type  = $this->file['type'];
@@ -594,7 +602,7 @@ class Store_files
             PRIMARY KEY (`id`),
             INDEX `" . $this->db_table . "_idx` (`id`, `ref_id`),
             INDEX `" . $this->db_table . "_tag` (`tag`)
-        ) ENGINE = InnoDB;";
+        ) ENGINE = InnoDB COLLATE='utf8_general_ci';";
 
         $this->db->execute($sql);
 
@@ -632,8 +640,9 @@ class Store_files
      * Open file and output to browser
      *
      * @param string $file Full path file name.  e.g: /abc/ddd/abc123.jpg
+     * @param bool $download Force to download file instead of direct open by browser
      */
-    private function open_file($file)
+    private function open_file($file, $download = false)
     {
         if (!file_exists($file)) {
             // header('Content-Type: application/json');
@@ -654,63 +663,69 @@ class Store_files
 
         //This will set the Content-Type to the appropriate setting for the file
         switch ($file_extension) {
-            /*Case 'exe': $Ctype='application/octet-stream'; break;
-            Case 'zip': $Ctype='application/zip'; break;
-            Case 'mp3': $Ctype='audio/mpeg'; break;
-            Case 'mpg': $Ctype='video/mpeg'; break;
-            Case 'avi': $Ctype='video/x-msvideo'; break;*/
+            /*Case 'exe': $ctype='application/octet-stream'; break;
+            Case 'zip': $ctype='application/zip'; break;
+            Case 'mp3': $ctype='audio/mpeg'; break;
+            Case 'mpg': $ctype='video/mpeg'; break;
+            Case 'avi': $ctype='video/x-msvideo'; break;*/
             case "asf":
-                $Ctype = "video/x-ms-asf";
+                $ctype = "video/x-ms-asf";
                 break;
             case "avi":
-                $Ctype = "video/x-msvideo";
+                $ctype = "video/x-msvideo";
                 break;
             case "exe":
-                $Ctype = "application/octet-stream";
+                $ctype = "application/octet-stream";
                 break;
             case "jpg":
-                $Ctype = "image/jpeg";
+                $ctype = "image/jpeg";
                 break;
             case "mov":
-                $Ctype = "video/quicktime";
+                $ctype = "video/quicktime";
                 break;
             case "mp3":
-                $Ctype = "audio/mpeg";
+                $ctype = "audio/mpeg";
                 break;
             case "mpg":
-                $Ctype = "video/mpeg";
+                $ctype = "video/mpeg";
                 break;
             case "mp4":
-                $Ctype = "video/mp4";
+                $ctype = "video/mp4";
                 break;
             case "mpeg":
-                $Ctype = "video/mpeg";
+                $ctype = "video/mpeg";
                 break;
             case "rar":
-                $Ctype = "encoding/x-compress";
+                $ctype = "encoding/x-compress";
                 break;
             case "txt":
-                $Ctype = "text/plain";
+                $ctype = "text/plain";
                 break;
             case "wav":
-                $Ctype = "audio/wav";
+                $ctype = "audio/wav";
                 break;
             case "wma":
-                $Ctype = "audio/x-ms-wma";
+                $ctype = "audio/x-ms-wma";
                 break;
             case "wmv":
-                $Ctype = "video/x-ms-wmv";
+                $ctype = "video/x-ms-wmv";
                 break;
             case "zip":
-                $Ctype = "application/x-zip-compressed";
+                $ctype = "application/x-zip-compressed";
                 break;
             default:
-                $Ctype = 'application/force-download';
+                $ctype = 'application/force-download';
         }
 
-        header("Content-type: $Ctype");
+        if ($download) {
+            $ctype = 'application/force-download';
+        // } else {
+        //     $filename = $this->translate_tpl_code($filename) . '.' . $file_extension;
+        }
+
+        header("Content-type: $ctype");
         //header('Content-Disposition: inline; filename="' . $fileinfo['basename'] . '"'); //use inline for browser cache to improve loading speed
-        header('Content-Disposition: inline; filename="' . $this->translate_tpl_code($filename) . '.' . $file_extension . '"'); //use inline for browser cache to improve loading speed
+        header('Content-Disposition: inline; filename="' . $filename . '"'); //use inline for browser cache to improve loading speed
         header("Content-Length: " . $size);
 
         set_time_limit(0);
@@ -739,7 +754,7 @@ class Store_files
         $upload        = null;
         $path          = $this->storage_path;
         $new_file_name = null;
-        $cipher        = "aes128";
+        $cipher        = "aes256";
         $ivlen         = openssl_cipher_iv_length($cipher);
         $iv            = openssl_random_pseudo_bytes($ivlen);
 

@@ -95,7 +95,7 @@ if (!function_exists("array_insert_before")) {
      *
      * @see array_insert_after()
      */
-    function array_insert_before($key, array &$array, $new_key, $new_value)
+    function array_insert_before($key, array&$array, $new_key, $new_value)
     {
         if (array_key_exists($key, $array)) {
             $new = array();
@@ -129,7 +129,7 @@ if (!function_exists("array_insert_after")) {
      *
      * @see array_insert_before()
      */
-    function array_insert_after($key, array &$array, $new_key, $new_value)
+    function array_insert_after($key, array&$array, $new_key, $new_value)
     {
         if (array_key_exists($key, $array)) {
             $new = array();
@@ -601,6 +601,10 @@ if (!function_exists("isv")) {
             }
 
             if (isset($var)) {
+                if (is_array($var)) {
+                    return (count(array_values($var)) > 0);
+                }
+
                 if (is_string($var) && trim($var) == "") {
                     return false;
                 }
@@ -637,7 +641,14 @@ if (!function_exists("is_value")) {
      */
     function is_value(&$var): bool
     {
-        return (!is_null($var) && $var !== "" ? true : false);
+        if (is_array($var)) {
+            return (count(array_values($var)) > 0);
+        } else {
+            // return (isset($var) && !empty($var) ? true : false);
+            // return (isset($var) && $var !== "" ? true : false);
+            // return (!is_array($var) && !is_null($var) && $var !== "" ? true : false);
+            return (!is_null($var) && $var !== "" ? true : false);
+        }
     }
 }
 
