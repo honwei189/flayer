@@ -762,7 +762,7 @@ class Store_files
             header("X-Accel-Buffering: yes");
             return;
         }
-
+        
         set_time_limit(0);
         ob_end_clean(); // prevent file size too large and exceed memory_limit
         readfile($file);
