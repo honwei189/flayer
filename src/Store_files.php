@@ -144,7 +144,7 @@ class Store_files
             echo json_encode(["FDO is not connected to database.  Please connect it first.  e.g:
             \$app->bind(\"honwei189\\fdo\\fdo\");
             \$app->fdo()->connect(honwei189\Config::get(\"database\", \"mysql\"));
-            ", ]);
+            "]);
             exit;
         }
 
@@ -435,6 +435,29 @@ class Store_files
                 'error'    => 0,
                 'md5'      => $this->md5($file),
             ];
+        } else if (is_array($file)) {
+            if (is_array($file) && count($file) > 0) {
+                $raw_file = $file;
+                $file     = null;
+
+                for ($i = 0; $max = count($raw_file), $i < $max; ++$i) {
+                    if (isset($raw_file['error'][$i])) {
+                        if ((int) $raw_file['error'] >= 0) {
+                            foreach ($raw_file['error'] as $_k => $_v) {
+                                if ($_v != 4) {
+                                    $file['name'][]     = $raw_file['name'][$i];
+                                    $file['size'][]     = $raw_file['size'][$i];
+                                    $file['tmp_name'][] = $raw_file['tmp_name'][$i];
+                                    $file['type'][]     = $raw_file['type'][$i];
+                                    $file['error'][]    = $raw_file['error'][$i];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $raw_file = null;
+            }
         } elseif (is_null($file)) {
             if (is_array($_FILES) && count($_FILES) > 0) {
                 $file = null;
@@ -719,14 +742,26 @@ class Store_files
 
         if ($download) {
             $ctype = 'application/force-download';
-        // } else {
-        //     $filename = $this->translate_tpl_code($filename) . '.' . $file_extension;
+            // } else {
+            //     $filename = $this->translate_tpl_code($filename) . '.' . $file_extension;
         }
 
         header("Content-type: $ctype");
         //header('Content-Disposition: inline; filename="' . $fileinfo['basename'] . '"'); //use inline for browser cache to improve loading speed
         header('Content-Disposition: inline; filename="' . $filename . '"'); //use inline for browser cache to improve loading speed
         header("Content-Length: " . $size);
+
+        if (strpos($_SERVER["SERVER_SOFTWARE"], 'Apache') !== false) {
+            if (in_array('mod_xsendfile', apache_get_modules())) {
+                // header("X-Sendfile-Temporary: $File");
+                header("X-Sendfile: $file");
+                return;
+            }
+        } else if (isset($_SERVER['HTTP_X_SENDFILE_TYPE']) && $_SERVER['HTTP_X_SENDFILE_TYPE'] == "X-Accel-Redirect") {
+            header("X-Accel-Redirect: /dlf/$file");
+            header("X-Accel-Buffering: yes");
+            return;
+        }
 
         set_time_limit(0);
         ob_end_clean(); // prevent file size too large and exceed memory_limit
